@@ -389,7 +389,8 @@
         <span id="gates-count">0/11</span>
       </div>
       <button class="btn btn-primary" id="btn-simulate">▶ 5 Bước</button>
-      <button class="btn" id="btn-history" style="border-color:#f59e0b;color:#fde68a">📜 Lịch Sử (VI/繁中)</button>
+      <button class="btn" id="btn-history" style="border-color:#f59e0b;color:#fde68a">📜 14 Giai Đoạn</button>
+      <button class="btn" id="btn-batches" style="border-color:#06b6d4;color:#a5f3fc">📋 156 Batches</button>
       <button class="btn" id="btn-step">Bước</button>
       <button class="btn" id="btn-lang">🌐 VI+中</button>
       <button class="btn" id="btn-theme">🌙 Đêm</button>
@@ -1432,6 +1433,10 @@
     // =========================================================
     let currentPhase = 0;
     let simTimer = null;
+    let simMode = 'phase'; // 'phase' | 'history' | 'batches'
+    let historyIdx = 0;
+    let batchIdx = 0;
+    let batchData = null;
     let langMode = 'bilingual'; // 'bilingual' | 'vi' | 'zh'
 
     const HISTORY_SCENARIO = [
@@ -1600,6 +1605,7 @@
       item.style.borderLeftColor = color;
       item.innerHTML = `<span class="time">${ts}</span>${msg}`;
       list.prepend(item);
+      while (list.children.length > 60) list.lastElementChild.remove();
     }
 
     function setAgentState(id, status, working) {
@@ -1717,9 +1723,45 @@
       }
     }
 
+    function runBatchStep(idx) {
+      if (!batchData || idx >= batchData.length) return;
+      batchIdx = idx;
+      const item = batchData[idx];
+      clearAllBubbles();
+      document.getElementById('sim-state-text').textContent = `BATCH ${item.b} (${idx + 1}/${batchData.length})`;
+      document.querySelectorAll('.phase-chip').forEach(ch => {
+        const p = Number(ch.dataset.phase);
+        ch.classList.toggle('active', p === 2 || p === 3);
+        ch.classList.toggle('done', p === 1);
+      });
+
+      CHARACTERS.forEach(c => {
+        if (c.id === item.agent || c.id === 'workbook-builder') {
+          setAgentState(c.id, `Batch ${item.b}`, true);
+        } else {
+          setAgentState(c.id, 'Sẵn sàng', false);
+        }
+      });
+
+      spawnPacket(item.route, 2);
+      updateGates(Math.min(11, Math.max(1, Math.round(((idx + 1) / batchData.length) * 11))));
+
+      const payload = `${item.tbl} (${item.rc} dòng)`;
+      showSpeech(item.agent, item.tag, item.vi, item.zh, payload, 0, 1400);
+
+      let logHtml = '';
+      if (langMode === 'vi') logHtml = item.vi;
+      else if (langMode === 'zh') logHtml = item.zh;
+      else logHtml = `${item.vi}<div style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(148,163,184,0.3);color:#fde68a">${item.zh}</div>`;
+      addLog(logHtml, '#06b6d4');
+    }
+
     function resetSim() {
       if (simTimer) { clearInterval(simTimer); simTimer = null; }
+      clearAllBubbles();
       currentPhase = 0;
+      historyIdx = 0;
+      batchIdx = 0;
       document.getElementById('sim-state-text').textContent = 'CHỜ LỆNH | 待命';
       document.querySelectorAll('.phase-chip').forEach(ch => ch.classList.remove('active', 'done'));
       CHARACTERS.forEach(c => setAgentState(c.id, 'Đang chờ', false));
@@ -1727,13 +1769,24 @@
       addLog('Đã đặt lại quy trình về trạng thái ban đầu. | 已重置回初始待命狀態。', '#94a3b8');
     }
 
-    document.getElementById('btn-step').addEventListener('click', () => {
-      if (currentPhase >= 5) resetSim();
-      runPhase(currentPhase + 1);
+    document.getElementById('btn-step').addEventListener('click', async () => {
+      if (simTimer) { clearInterval(simTimer); simTimer = null; }
+      if (simMode === 'history') {
+        if (historyIdx >= HISTORY_SCENARIO.length) historyIdx = 0;
+        runHistoryStep(historyIdx++);
+      } else if (simMode === 'batches') {
+        if (!batchData) batchData = await (await fetch('./batches.json')).json();
+        if (batchIdx >= batchData.length) batchIdx = 0;
+        runBatchStep(batchIdx++);
+      } else {
+        if (currentPhase >= 5) resetSim();
+        runPhase(currentPhase + 1);
+      }
     });
 
     document.getElementById('btn-simulate').addEventListener('click', () => {
       resetSim();
+      simMode = 'phase';
       runPhase(1);
       simTimer = setInterval(() => {
         if (currentPhase >= 5) { clearInterval(simTimer); simTimer = null; return; }
@@ -1743,17 +1796,37 @@
 
     document.getElementById('btn-history').addEventListener('click', () => {
       resetSim();
-      let idx = 0;
-      runHistoryStep(idx);
+      simMode = 'history';
+      historyIdx = 0;
+      runHistoryStep(historyIdx++);
       simTimer = setInterval(() => {
-        idx++;
-        if (idx >= HISTORY_SCENARIO.length) {
+        if (historyIdx >= HISTORY_SCENARIO.length) {
           clearInterval(simTimer);
           simTimer = null;
           return;
         }
-        runHistoryStep(idx);
+        runHistoryStep(historyIdx++);
       }, 3000);
+    });
+
+    document.getElementById('btn-batches').addEventListener('click', async () => {
+      resetSim();
+      simMode = 'batches';
+      if (!batchData) {
+        addLog('Đang tải danh sách 156 Batches... | 載入 156 批次清單中...', '#06b6d4');
+        batchData = await (await fetch('./batches.json')).json();
+      }
+      batchIdx = 0;
+      runBatchStep(batchIdx++);
+      simTimer = setInterval(() => {
+        if (batchIdx >= batchData.length) {
+          clearInterval(simTimer);
+          simTimer = null;
+          addLog('<b>Hoàn tất toàn bộ 156 Batches (Batch 2 → 158)!</b> | <b>已完成全部 156 批次（Batch 2 → 158）！</b>', '#10b981');
+          return;
+        }
+        runBatchStep(batchIdx++);
+      }, 1500);
     });
 
     const btnLang = document.getElementById('btn-lang');
