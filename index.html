@@ -525,22 +525,28 @@
   <div class="chart-modal" id="chart-modal">
     <div class="chart-modal-head">
       <div>
-        <div style="font-size:15px;font-weight:800">📊 Biểu Đồ Tiến Độ Dự Án — Thuế Giảm Theo Đợt & Khối Lượng Công Việc Subagent</div>
+        <div style="font-size:15px;font-weight:800">📊 Biểu Đồ Tiến Độ Dự Án — Thuế Giảm Theo Đợt (VND) & Công Việc Subagent</div>
         <div style="font-size:11px;color:#94a3b8;margin-top:2px">Số liệu tổng hợp thực tế từ 156 đợt xử lý (12/09/2026 – 26/10/2026) | 156 批次實務進度圖表</div>
       </div>
-      <button class="btn" id="btn-close-charts" style="border-color:#ef4444;color:#fecaca">✕ Đóng</button>
+      <div style="display:flex;align-items:center;gap:8px">
+        <label style="font-size:11px;color:#cbd5e1;display:flex;align-items:center;gap:5px">
+          Tỷ giá (VND/USD):
+          <input id="input-fx-rate" type="number" value="25400" step="100" min="1000" style="width:78px;padding:4px 6px;border-radius:6px;border:1px solid rgba(148,163,184,0.35);background:#0f172a;color:#fde68a;font-weight:700;font-size:11px" />
+        </label>
+        <button class="btn" id="btn-close-charts" style="border-color:#ef4444;color:#fecaca">✕ Đóng</button>
+      </div>
     </div>
     <div class="chart-kpis" id="chart-kpis"></div>
     <div class="chart-grid">
       <div class="chart-panel">
         <div class="chart-title">
-          <span>1. Timeline Lượng Thuế Giảm Theo Từng Đợt (USD)</span>
+          <span>1. Timeline Lượng Thuế Giảm Theo Từng Đợt (VND)</span>
           <span style="font-size:10px;color:#6ee7b7">Cột: từng đợt • Đường: lũy kế giảm</span>
         </div>
         <svg class="chart-svg" id="svg-tax-chart" viewBox="0 0 560 270"></svg>
         <div class="chart-legend">
-          <span class="legend-item"><span class="legend-dot" style="background:#10b981"></span>Thuế giảm từng đợt (USD)</span>
-          <span class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>Tổng giảm lũy kế (USD)</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#10b981"></span>Thuế giảm từng đợt (VND)</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>Tổng giảm lũy kế (VND)</span>
         </div>
       </div>
       <div class="chart-panel">
@@ -2215,16 +2221,30 @@
     }
     function hideChartTip() { chartTooltip.style.display = 'none'; }
 
+    function fmtVndShort(vnd) {
+      const abs = Math.abs(vnd);
+      if (abs >= 1e9) return `${(vnd / 1e9).toFixed(2)} tỷ`;
+      if (abs >= 1e6) return `${(vnd / 1e6).toFixed(1)} tr`;
+      return Math.round(vnd).toLocaleString('vi-VN');
+    }
+
     function renderCharts(data) {
+      const fx = Math.max(1000, Number(document.getElementById('input-fx-rate')?.value) || 25400);
       const taxItems = data.filter(d => d.tax && !['0', '0.0', '0.00'].includes(d.tax));
-      let cum = 0;
+      let cumUsd = 0;
       const taxPoints = taxItems.map(d => {
-        const val = parseFloat(d.tax) || 0;
-        const reduced = -val; // âm là giảm được thuế
-        cum += reduced;
-        return { ...d, val, reduced, cum };
+        const valUsd = parseFloat(d.tax) || 0;
+        const reducedUsd = -valUsd;
+        cumUsd += reducedUsd;
+        return {
+          ...d,
+          reducedUsd,
+          cumUsd,
+          reducedVnd: reducedUsd * fx,
+          cumVnd: cumUsd * fx
+        };
       });
-      const totalReduced = cum;
+      const totalReducedVnd = cumUsd * fx;
 
       // KPI Cards
       document.getElementById('chart-kpis').innerHTML = `
@@ -2238,7 +2258,8 @@
         </div>
         <div class="kpi-box">
           <div class="kpi-label">Tổng Thuế Giảm Lũy Kế</div>
-          <div class="kpi-val" style="color:#10b981">$${totalReduced.toLocaleString('en-US', {maximumFractionDigits: 0})}</div>
+          <div class="kpi-val" style="color:#10b981">${fmtVndShort(totalReducedVnd)} VND</div>
+          <div style="font-size:10px;color:#94a3b8;margin-top:2px">≈ $${Math.round(cumUsd).toLocaleString('en-US')} USD</div>
         </div>
         <div class="kpi-box">
           <div class="kpi-label">Khoảng Thời Gian</div>
@@ -2246,32 +2267,31 @@
         </div>
       `;
 
-      // 1) SVG Tax Timeline Chart
+      // 1) SVG Tax Timeline Chart (VND)
       const svgTax = document.getElementById('svg-tax-chart');
-      const W = 560, H = 270, padL = 52, padR = 52, padT = 18, padB = 38;
+      const W = 560, H = 270, padL = 56, padR = 46, padT = 18, padB = 38;
       const plotW = W - padL - padR, plotH = H - padT - padB;
-      const maxBar = Math.max(...taxPoints.map(p => Math.abs(p.reduced)), 1);
-      const maxCum = Math.max(...taxPoints.map(p => Math.abs(p.cum)), 1);
+      const maxBar = Math.max(...taxPoints.map(p => Math.abs(p.reducedVnd)), 1);
+      const maxCum = Math.max(...taxPoints.map(p => Math.abs(p.cumVnd)), 1);
 
       let taxHtml = '';
-      // Grid lines
       for (let i = 0; i <= 4; i++) {
         const y = padT + (plotH * i) / 4;
-        const lbl = Math.round(maxBar * (1 - i / 4)).toLocaleString('en-US');
+        const lbl = fmtVndShort(maxBar * (1 - i / 4));
         taxHtml += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(148,163,184,0.16)" stroke-dasharray="3 3"/>`;
-        taxHtml += `<text x="${padL - 6}" y="${y + 3}" text-anchor="end" font-size="9" fill="#94a3b8">$${(lbl)}</text>`;
+        taxHtml += `<text x="${padL - 6}" y="${y + 3}" text-anchor="end" font-size="9" fill="#94a3b8">${lbl}</text>`;
       }
 
       const barW = Math.max(4, plotW / taxPoints.length - 3);
       let linePts = [];
       taxPoints.forEach((p, idx) => {
         const x = padL + (idx + 0.5) * (plotW / taxPoints.length);
-        const bh = (Math.max(0, p.reduced) / maxBar) * plotH;
+        const bh = (Math.max(0, p.reducedVnd) / maxBar) * plotH;
         const y = padT + plotH - bh;
-        const cy = padT + plotH - (Math.max(0, p.cum) / maxCum) * plotH;
+        const cy = padT + plotH - (Math.max(0, p.cumVnd) / maxCum) * plotH;
         linePts.push(`${x.toFixed(1)},${cy.toFixed(1)}`);
 
-        const col = p.reduced >= 0 ? '#10b981' : '#ef4444';
+        const col = p.reducedVnd >= 0 ? '#10b981' : '#ef4444';
         taxHtml += `<rect class="tax-bar" data-idx="${idx}" x="${(x - barW/2).toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(2, bh).toFixed(1)}" rx="2" fill="${col}" opacity="0.85" style="cursor:pointer"/>`;
         if (idx % 6 === 0 || idx === taxPoints.length - 1) {
           taxHtml += `<text x="${x.toFixed(1)}" y="${H - 18}" text-anchor="middle" font-size="8.5" fill="#94a3b8">Đ${p.b}</text>`;
@@ -2289,7 +2309,7 @@
       svgTax.querySelectorAll('.tax-bar').forEach(el => {
         el.addEventListener('mousemove', e => {
           const p = taxPoints[Number(el.dataset.idx)];
-          showChartTip(e, `<b>Đợt ${p.b}</b> (${p.dt})<br/>Giảm đợt này: <b style="color:#10b981">$${p.reduced.toLocaleString('en-US', {maximumFractionDigits:2})}</b><br/>Lũy kế: <b style="color:#fbbf24">$${p.cum.toLocaleString('en-US', {maximumFractionDigits:2})}</b><br/><span style="color:#cbd5e1">${p.area}</span>`);
+          showChartTip(e, `<b>Đợt ${p.b}</b> (${p.dt})<br/>Giảm đợt này: <b style="color:#10b981">${Math.round(p.reducedVnd).toLocaleString('vi-VN')} VND</b> <span style="color:#94a3b8">($${Math.round(p.reducedUsd).toLocaleString('en-US')})</span><br/>Lũy kế: <b style="color:#fbbf24">${fmtVndShort(p.cumVnd)} VND</b><br/><span style="color:#cbd5e1">${p.area}</span>`);
         });
         el.addEventListener('mouseleave', hideChartTip);
       });
@@ -2361,6 +2381,9 @@
       if (!batchData) batchData = await (await fetch('./batches.json')).json();
       renderCharts(batchData);
       chartModal.classList.add('open');
+    });
+    document.getElementById('input-fx-rate').addEventListener('input', () => {
+      if (batchData) renderCharts(batchData);
     });
     document.getElementById('btn-close-charts').addEventListener('click', () => {
       chartModal.classList.remove('open');
