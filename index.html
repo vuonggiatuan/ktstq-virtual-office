@@ -139,7 +139,11 @@
     .hud-top {
       position: fixed; top: 10px; left: 10px; right: 10px;
       z-index: 25;
-      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+      pointer-events: none;
+    }
+    .hud-top-left {
+      display: flex; flex-direction: column; gap: 6px; align-items: flex-start;
       pointer-events: none;
     }
     .hud-card {
@@ -271,7 +275,7 @@
 
     /* Right Character Inspector */
     .inspector {
-      position: fixed; top: 92px; right: 14px; bottom: 14px;
+      position: fixed; top: 62px; right: 10px; bottom: 14px;
       width: 365px; z-index: 20;
       display: flex; flex-direction: column; gap: 10px;
       overflow-y: auto;
@@ -367,20 +371,22 @@
 
   <!-- Thanh Điều Khiển Phía Trên -->
   <div class="hud-top">
-    <div class="hud-card brand">
-      <div class="brand-icon">XNK</div>
-      <div>
-        <h1>Văn Phòng Ảo XNK — New Wide</h1>
-        <p>Chủ quản: Chị Lan • 10 Vị Trí Hải Quan & DCS_XNT</p>
+    <div class="hud-top-left">
+      <div class="hud-card brand">
+        <div class="brand-icon">XNK</div>
+        <div>
+          <h1>Văn Phòng Ảo XNK — New Wide</h1>
+          <p>Chủ quản: Chị Lan • 10 Vị Trí Hải Quan & DCS_XNT</p>
+        </div>
       </div>
-    </div>
 
-    <div class="hud-card pipeline-bar" id="pipeline-bar">
-      <div class="phase-chip" data-phase="1">1. Lấy Số Liệu Gốc</div>
-      <div class="phase-chip" data-phase="2">2. Kiểm Tra 4 Mảng</div>
-      <div class="phase-chip" data-phase="3">3. Lập File Excel</div>
-      <div class="phase-chip" data-phase="4">4. Kiểm Tra Chéo</div>
-      <div class="phase-chip" data-phase="5">5. Bàn Giao</div>
+      <div class="hud-card pipeline-bar" id="pipeline-bar">
+        <div class="phase-chip" data-phase="1">1. Lấy Số Liệu Gốc</div>
+        <div class="phase-chip" data-phase="2">2. Kiểm Tra 4 Mảng</div>
+        <div class="phase-chip" data-phase="3">3. Lập File Excel</div>
+        <div class="phase-chip" data-phase="4">4. Kiểm Tra Chéo</div>
+        <div class="phase-chip" data-phase="5">5. Bàn Giao</div>
+      </div>
     </div>
 
     <div class="hud-card hud-actions">
