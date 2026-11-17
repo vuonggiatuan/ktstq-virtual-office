@@ -992,6 +992,13 @@
       const bin = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.13, 0.32, 8), flatMat(0x64748b));
       bin.position.set(1.22, 0.16, 0.2);
       g.add(bin);
+      // Điện thoại bàn văn phòng & ống cắm bút
+      const phone = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.08, 0.2), flatMat(0x334155));
+      phone.position.set(0.76, 0.83, -0.18);
+      g.add(phone);
+      const penCup = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.04, 0.1, 8), flatMat(0x0ea5e9));
+      penCup.position.set(-0.52, 0.84, -0.1);
+      g.add(penCup);
 
       g.position.set(x, y, z);
       g.rotation.y = rotY;
@@ -1132,6 +1139,77 @@
     forklift.position.set(-3.2, 0, 6.4);
     forklift.rotation.y = 0.25;
     worldGroup.add(forklift);
+
+    // H) Bàn Họp Giao Ban Trung Tâm (4 ghế + hồ sơ trải bàn)
+    const briefTable = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.08, 1.3), flatMat(0xf8fafc));
+    briefTable.position.set(2.2, 0.75, -1.2);
+    briefTable.castShadow = true; briefTable.receiveShadow = true;
+    worldGroup.add(briefTable);
+    [-1.0, 1.0].forEach(lx => {
+      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.72, 1.0), flatMat(0x475569));
+      leg.position.set(2.2 + lx, 0.36, -1.2);
+      leg.castShadow = true;
+      worldGroup.add(leg);
+    });
+    const briefDoc = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.04, 0.35), flatMat(0x38bdf8));
+    briefDoc.position.set(2.2, 0.81, -1.2);
+    worldGroup.add(briefDoc);
+    createOfficeChair(1.4, 0.02, -2.1, 0, 0x475569);
+    createOfficeChair(3.0, 0.02, -2.1, 0, 0x475569);
+    createOfficeChair(1.4, 0.02, -0.3, Math.PI, 0x475569);
+    createOfficeChair(3.0, 0.02, -0.3, Math.PI, 0x475569);
+
+    // I) Giá Treo Quần Áo Mẫu Xuất Khẩu (Đặc trưng xưởng may New Wide)
+    const garmentRack = new THREE.Group();
+    [-0.65, 0.65].forEach(px => {
+      const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.45, 6), flatMat(0x475569));
+      pole.position.set(px, 0.72, 0);
+      garmentRack.add(pole);
+    });
+    const topBar = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.4, 6), flatMat(0x94a3b8));
+    topBar.rotation.z = Math.PI / 2;
+    topBar.position.set(0, 1.42, 0);
+    garmentRack.add(topBar);
+    [0x2563eb, 0x10b981, 0xf59e0b, 0xec4899].forEach((sc, i) => {
+      const shirt = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.62, 0.16), flatMat(sc));
+      shirt.position.set(-0.42 + i * 0.28, 1.05, 0);
+      shirt.castShadow = true;
+      garmentRack.add(shirt);
+    });
+    garmentRack.position.set(5.4, 0, 5.2);
+    garmentRack.rotation.y = -0.3;
+    worldGroup.add(garmentRack);
+
+    // J) Cửa Kính Ra Vào Văn Phòng & Thảm Chào Đón
+    const doorFrame = new THREE.Mesh(new THREE.BoxGeometry(0.14, 2.35, 1.8), flatMat(0x334155));
+    doorFrame.position.set(-10.5, 1.18, -3.9);
+    worldGroup.add(doorFrame);
+    const doorGlass = new THREE.Mesh(new THREE.BoxGeometry(0.08, 2.2, 1.6), flatMat(0x7dd3fc, { transparent: true, opacity: 0.45 }));
+    doorGlass.position.set(-10.45, 1.15, -3.9);
+    worldGroup.add(doorGlass);
+    const welcomeMat = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.03, 1.6), flatMat(0x1e3a8a));
+    welcomeMat.position.set(-9.9, 0.03, -3.9);
+    worldGroup.add(welcomeMat);
+
+    // K) Đầu Kéo Xe Tải Container (Bến Logistics ngoài sân)
+    const truck = new THREE.Group();
+    const cab = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.95, 0.88), flatMat(0xef4444));
+    cab.position.set(0, 0.55, 0);
+    cab.castShadow = true;
+    truck.add(cab);
+    const windshield = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.35, 0.76), flatMat(0xbae6fd));
+    windshield.position.set(0.5, 0.72, 0);
+    truck.add(windshield);
+    [-0.32, 0.32].forEach(wx => {
+      [-0.45, 0.45].forEach(wz => {
+        const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 0.14, 10), flatMat(0x0f172a));
+        wheel.rotation.x = Math.PI / 2;
+        wheel.position.set(wx, 0.18, wz);
+        truck.add(wheel);
+      });
+    });
+    truck.position.set(-9.8, 0, 6.45);
+    worldGroup.add(truck);
 
     function addOfficePlant(x, z) {
       const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.2, 0.45, 8), flatMat(0xb45309));
@@ -1452,48 +1530,48 @@
         zh: '<b>階段 1/14 — 啟動與鎖定原始資料：</b> 蘭姐確認 2023/07/01–2026/09/30 範圍；SQL 組唯讀封存 11,962 報單與 255,346 入庫流水。'
       },
       {
-        stage: '2/14 • Batch 2–20 (Mapping)',
+        stage: '2/14 • Batch 2–20 (Chuẩn hóa Mã)',
         phase: 2, gates: 2, route: 'command->analytics',
         active: ['import-analyst', 'tax-analyst'], done: ['data-extractor'],
         talk: [
-          ['import-analyst', 'Nhập Khẩu ➔ Thuế NPL', 'Batch 2–20 (12/09): Đang xử lý 1.802 dòng GroupA trên DCS_Wa_Sub!', 'Batch 2–20（9/12）：正修復 DCS_Wa_Sub 1,802 筆 GroupA 映射！', 'Batch 2–20 (1.802 dòng)', 0],
-          ['tax-analyst', 'Thuế NPL ➔ Chị Lan', 'Đã dựng mô hình đối chiếu DCS & bảng đo thuế chuẩn.', '已建立 DCS 對帳模型與稅額基準測量！', 'DCS Recon Model', 850]
+          ['import-analyst', 'Nhập Khẩu ➔ Thuế NPL', 'Batch 2–20 (12/09): Đang chuẩn hóa 1.802 dòng mã nguyên phụ liệu nhập kho!', 'Batch 2–20（9/12）：正標準化 1,802 筆進倉原物料料號！', 'Batch 2–20 (1.802 dòng)', 0],
+          ['tax-analyst', 'Thuế NPL ➔ Chị Lan', 'Đã dựng mô hình đối chiếu tồn kho & bảng đo thuế chuẩn.', '已建立庫存對帳模型與稅額基準測量！', 'Mô hình Đối chiếu', 850]
         ],
-        vi: '<b>Giai đoạn 2/14 — Batch 2–20 (12/09/2026):</b> Khởi chạy các batch đầu tiên sửa mapping <code>DCS_Wa_Sub</code> (1.802 dòng GroupA) và dựng mô hình đối chiếu DCS.',
-        zh: '<b>階段 2/14 — Batch 2–20（2026/09/12）：</b> 執行首批修復 <code>DCS_Wa_Sub</code> 1,802 筆 GroupA 映射，並建立 DCS 對帳基準模型。'
+        vi: '<b>Giai đoạn 2/14 — Batch 2–20 (12/09/2026):</b> Chạy các đợt đầu tiên chuẩn hóa 1.802 dòng mã nguyên phụ liệu nhập kho và dựng khung đo thuế chuẩn.',
+        zh: '<b>階段 2/14 — Batch 2–20（2026/09/12）：</b> 執行首批進倉 1,802 筆料號標準化，並建立對帳基準模型。'
       },
       {
         stage: '3/14 • Batch 21–50 (ĐVT & Khổ)',
         phase: 2, gates: 3, route: 'command->analytics',
         active: ['usage-analyst', 'export-analyst'], done: ['data-extractor', 'import-analyst'],
         talk: [
-          ['usage-analyst', 'Định Mức ➔ Xuất Khẩu', 'Batch 21–50 (15–17/09): Đã sửa SP_Convert_Unit & tách khổ từng dòng!', 'Batch 21–50（9/15–17）：已修復 SP_Convert_Unit 並逐筆拆幅寬！', 'SP_Convert_Unit + Trim', 0],
-          ['export-analyst', 'Xuất Khẩu ➔ Chị Lan', 'Đã đồng bộ hàm Import/Export & CUS_Usage theo đơn hàng.', '已同步進出口統計函數與訂單 CUS_Usage！', 'Sync CUS_Usage', 850]
+          ['usage-analyst', 'Định Mức ➔ Xuất Khẩu', 'Batch 21–50 (15–17/09): Đã chuẩn hóa đơn vị tính & tách khổ vải từng dòng!', 'Batch 21–50（9/15–17）：已修正單位換算並逐筆拆幅寬！', 'Chuẩn hóa ĐVT & Khổ', 0],
+          ['export-analyst', 'Xuất Khẩu ➔ Chị Lan', 'Đã đồng bộ số liệu Xuất–Nhập và bảng định mức theo từng đơn hàng.', '已同步進出口統計與訂單核銷單耗！', 'Đồng bộ Định mức', 850]
         ],
-        vi: '<b>Giai đoạn 3/14 — Batch 21–50 (15–17/09/2026):</b> Sửa <code>SP_Convert_Unit</code>, hàm <code>Trim</code>, tách khổ từng dòng vải và đồng bộ <code>CUS_Usage</code>.',
-        zh: '<b>階段 3/14 — Batch 21–50（2026/09/15–17）：</b> 修復 <code>SP_Convert_Unit</code> 與去空白函數，改採逐筆幅寬換算並同步 <code>CUS_Usage</code>。'
+        vi: '<b>Giai đoạn 3/14 — Batch 21–50 (15–17/09/2026):</b> Sửa quy đổi đơn vị tính, cắt khoảng trắng mã hàng, tách khổ từng dòng vải và đồng bộ định mức theo đơn hàng.',
+        zh: '<b>階段 3/14 — Batch 21–50（2026/09/15–17）：</b> 修正單位換算與料號空白，改採逐筆幅寬並同步訂單單耗。'
       },
       {
-        stage: '4/14 • Sự Cố 17/09 & Guard SQL',
+        stage: '4/14 • Sự Cố 17/09 & Khóa An Toàn',
         phase: 1, gates: 4, route: 'vault->command',
         active: ['orchestrator', 'data-extractor'], done: [],
         talk: [
-          ['data-extractor', 'Kho SQL ➔ Chị Lan', 'Cảnh báo 17/09 (14:31): Có script ghi nhầm vào ECUS5VNACCS! Đang rollback!', '9/17 警報（14:31）：偵測誤寫入 ECUS5VNACCS，已於一小時內回滾！', 'Rollback ECUS < 1h', 0],
-          ['orchestrator', 'Chị Lan ➔ Toàn Phòng', 'Từ nay khóa cứng agent.db.guard_sql: ECUS5VNACCS vĩnh viễn Read-Only!', '即日起鎖死 agent.db.guard_sql：ECUS5VNACCS 永久唯讀！', 'guard_sql LOCKED', 850]
+          ['data-extractor', 'Kho Dữ Liệu ➔ Chị Lan', 'Cảnh báo 17/09 (14:31): Phát hiện ghi nhầm vào hệ thống Hải quan! Đã khôi phục ngay!', '9/17 警報（14:31）：偵測誤寫入海關系統，已於一小時內完整回滾！', 'Khôi phục < 1 giờ', 0],
+          ['orchestrator', 'Chị Lan ➔ Toàn Phòng', 'Từ nay khóa cứng cổng bảo vệ: Hệ thống Hải quan vĩnh viễn chỉ được xem!', '即日起啟用永久唯讀鎖：海關系統嚴禁寫入！', 'Khóa Chỉ Xem (Read-Only)', 850]
         ],
-        vi: '<b>Giai đoạn 4/14 — Sự cố 17/09 & Khóa <code>guard_sql</code>:</b> Khi có script ghi nhầm vào <code>ECUS5VNACCS</code> (14:31–14:46), hệ thống rollback trong 1 giờ và khóa cứng <code>agent.db.guard_sql</code>.',
-        zh: '<b>階段 4/14 — 9/17 ECUS 事件與鎖定 <code>guard_sql</code>：</b> 誤寫入 <code>ECUS5VNACCS</code> 當小時內即完成回滾，並永久啟用 <code>agent.db.guard_sql</code> 唯讀防護。'
+        vi: '<b>Giai đoạn 4/14 — Sự cố 17/09 & Khóa bảo vệ:</b> Khi phát hiện ghi nhầm vào hệ thống Hải quan (14:31–14:46), đã khôi phục ngay trong 1 giờ và khóa cứng chế độ chỉ đọc.',
+        zh: '<b>階段 4/14 — 9/17 事件與安全鎖定：</b> 誤寫入海關系統當小時內即完成回滾，並永久啟用唯讀防護機制。'
       },
       {
-        stage: '5/14 • Batch 51–91 & Sổ Cái',
+        stage: '5/14 • Batch 51–91 & Nhật Ký Kiểm Toán',
         phase: 2, gates: 5, route: 'analytics->forge',
         active: ['tax-analyst', 'workbook-builder'], done: ['data-extractor'],
         talk: [
-          ['tax-analyst', 'Thuế NPL ➔ Lập Sổ', 'Batch 51–91: Mọi batch đều phải Đo trước ➔ Backup BK_ ➔ Dry-run ➔ Commit!', 'Batch 51–91：每批皆須先測稅額 ➔ 備份 BK_ ➔ 試跑 ➔ 單交易提交！', '6 Bước Chuẩn + BK_', 0],
-          ['workbook-builder', 'Lập Sổ ➔ Chị Lan', 'Đã ghi đầy đủ vào sổ cái append-only remediation_ledger.csv!', '已完整登錄至不可變稽核帳本 remediation_ledger.csv！', 'remediation_ledger.csv', 850]
+          ['tax-analyst', 'Thuế NPL ➔ Lập Sổ', 'Batch 51–91: Mọi đợt sửa đều phải Đo trước ➔ Sao lưu ➔ Chạy thử ➔ Xác nhận!', 'Batch 51–91：每批皆須先測稅額 ➔ 備份 ➔ 試跑 ➔ 單筆確認！', '6 Bước Kiểm Toán Chuẩn', 0],
+          ['workbook-builder', 'Lập Sổ ➔ Chị Lan', 'Đã ghi đầy đủ dấu vết vào sổ nhật ký kiểm toán không thể xóa sửa!', '已完整登錄至不可篡改的稽核日誌帳本！', 'Sổ Nhật Ký Kiểm Toán', 850]
         ],
-        vi: '<b>Giai đoạn 5/14 — Batch 51–91 & Sổ cái <code>remediation_ledger.csv</code>:</b> Áp dụng chuẩn 6 bước bắt buộc (<code>measure_tax</code> → Backup <code>BK_*</code> → Dry-run → Commit → Ghi Ledger → Đo lại).',
-        zh: '<b>階段 5/14 — Batch 51–91 與帳本 <code>remediation_ledger.csv</code>：</b> 落實六步驟規範（事前測量 → <code>BK_*</code> 備份 → 試跑 → 提交 → 登錄帳本 → 複測）。'
+        vi: '<b>Giai đoạn 5/14 — Batch 51–91 & Sổ nhật ký kiểm toán:</b> Áp dụng quy trình 6 bước bắt buộc (Đo thuế trước → Sao lưu dữ liệu → Chạy thử → Xác nhận → Ghi sổ cái → Đo lại).',
+        zh: '<b>階段 5/14 — Batch 51–91 與稽核帳本：</b> 落實六步驟規範（事前測量 → 資料備份 → 試跑 → 提交 → 登錄帳本 → 複測）。'
       },
       {
         stage: '6/14 • Batch 92–125 (Tồn 2023)',
@@ -1745,7 +1823,7 @@
       spawnPacket(item.route, 2);
       updateGates(Math.min(11, Math.max(1, Math.round(((idx + 1) / batchData.length) * 11))));
 
-      const payload = item.rc && item.rc !== '-' ? `${item.tbl} (${item.rc} dòng)` : item.tbl;
+      const payload = item.rc ? `${item.area} (${item.rc} dòng)` : item.area;
       showSpeech(item.agent, item.tag, item.vi, item.zh, payload, 0, 1400);
 
       let logHtml = '';
