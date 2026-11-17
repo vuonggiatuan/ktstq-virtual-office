@@ -1,0 +1,1550 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Văn Phòng Ảo Xuất Nhập Khẩu — New Wide</title>
+  <style>
+    :root {
+      --bg-deep: #0f172a;
+      --panel-bg: rgba(15, 23, 42, 0.89);
+      --panel-border: rgba(148, 163, 184, 0.25);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      background: radial-gradient(circle at 50% 30%, #e0f2fe 0%, #bae6fd 45%, #60a5fa 100%);
+      font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      color: var(--text-main);
+      user-select: none;
+      transition: background 0.4s ease;
+    }
+
+    #canvas-container { position: fixed; inset: 0; z-index: 1; }
+    #labels-layer { position: fixed; inset: 0; pointer-events: none; z-index: 5; overflow: hidden; }
+
+    .agent-label {
+      position: absolute;
+      transform: translate(-50%, -100%);
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(255,255,255,0.24);
+      backdrop-filter: blur(8px);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.32);
+      transition: opacity 0.2s, transform 0.15s;
+      pointer-events: auto;
+      cursor: pointer;
+    }
+    .agent-label:hover {
+      border-color: rgba(255,255,255,0.7);
+      transform: translate(-50%, -108%) scale(1.05);
+    }
+    .agent-label .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      box-shadow: 0 0 8px currentColor;
+    }
+    .agent-label .status-pill {
+      font-size: 9px;
+      padding: 1px 6px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.12);
+      color: #cbd5e1;
+      letter-spacing: 0.02em;
+    }
+    .agent-label.active-working .status-pill {
+      background: rgba(16, 185, 129, 0.28);
+      color: #6ee7b7;
+    }
+
+    .zone-label {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: #f8fafc;
+      background: rgba(15, 23, 42, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      padding: 3px 9px;
+      border-radius: 7px;
+      pointer-events: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.22);
+    }
+
+    /* Top HUD */
+    .hud-top {
+      position: fixed; top: 14px; left: 14px; right: 14px;
+      z-index: 20;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      pointer-events: none;
+    }
+    .hud-card {
+      pointer-events: auto;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      backdrop-filter: blur(14px);
+      border-radius: 14px;
+      padding: 10px 14px;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.35);
+    }
+    .brand { display: flex; align-items: center; gap: 11px; }
+    .brand-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: linear-gradient(135deg, #2563eb, #06b6d4);
+      display: grid; place-items: center;
+      font-weight: 800; font-size: 13px; color: white;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
+    }
+    .brand h1 { font-size: 14px; font-weight: 700; }
+    .brand p { font-size: 11px; color: #cbd5e1; margin-top: 2px; }
+
+    .pipeline-bar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .phase-chip {
+      font-size: 11px; font-weight: 600;
+      padding: 5px 9px; border-radius: 8px;
+      background: rgba(30, 41, 59, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      color: var(--text-muted);
+      transition: all 0.25s;
+    }
+    .phase-chip.active {
+      background: rgba(37, 99, 235, 0.32);
+      border-color: #60a5fa;
+      color: #eff6ff;
+      box-shadow: 0 0 14px rgba(59, 130, 246, 0.4);
+    }
+    .phase-chip.done {
+      background: rgba(16, 185, 129, 0.22);
+      border-color: rgba(16, 185, 129, 0.55);
+      color: #6ee7b7;
+    }
+
+    .hud-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .btn {
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: rgba(30, 41, 59, 0.92);
+      color: var(--text-main);
+      padding: 7px 10px;
+      border-radius: 9px;
+      font-size: 11.5px;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      display: inline-flex; align-items: center; gap: 5px;
+      transition: all 0.18s;
+    }
+    .btn:hover { background: rgba(51, 65, 85, 0.95); transform: translateY(-1px); }
+    .btn-primary {
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      border-color: #60a5fa;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+    }
+
+    .gates-badge {
+      display: flex; align-items: center; gap: 7px;
+      padding: 6px 10px; border-radius: 9px;
+      background: rgba(15, 23, 42, 0.92);
+      border: 1px solid rgba(148, 163, 184, 0.24);
+      font-size: 11px; font-weight: 700;
+      white-space: nowrap;
+    }
+    .gates-bar {
+      width: 58px; height: 7px; border-radius: 99px;
+      background: rgba(148,163,184,0.25); overflow: hidden;
+    }
+    .gates-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, #06b6d4, #10b981);
+      transition: width 0.35s ease;
+    }
+
+    /* Bottom-Left Map & Roster */
+    .hud-bottom-left {
+      position: fixed; bottom: 14px; left: 14px; z-index: 20;
+      display: flex; flex-direction: column; gap: 10px;
+      max-width: 375px;
+    }
+    .minimap-title {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.06em; color: #cbd5e1;
+      margin-bottom: 8px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .zone-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .zone-btn {
+      text-align: left;
+      padding: 7px 9px; border-radius: 9px;
+      background: rgba(30, 41, 59, 0.78);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      color: var(--text-main);
+      font-size: 11px; font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .zone-btn:hover, .zone-btn.active {
+      border-color: #60a5fa;
+      background: rgba(37, 99, 235, 0.28);
+    }
+    .zone-swatch { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
+
+    .roster-strip { display: flex; gap: 5px; flex-wrap: wrap; }
+    .roster-pill {
+      padding: 4px 8px; border-radius: 999px;
+      font-size: 10.5px; font-weight: 600;
+      background: rgba(30, 41, 59, 0.88);
+      border: 1px solid rgba(148,163,184,0.22);
+      color: #e2e8f0; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 5px;
+      transition: all 0.15s;
+    }
+    .roster-pill:hover, .roster-pill.selected {
+      background: rgba(255,255,255,0.18);
+      color: #fff;
+      border-color: rgba(255,255,255,0.55);
+    }
+
+    /* Right Character Inspector */
+    .inspector {
+      position: fixed; top: 92px; right: 14px; bottom: 14px;
+      width: 365px; z-index: 20;
+      display: flex; flex-direction: column; gap: 10px;
+      overflow-y: auto;
+    }
+    .inspector::-webkit-scrollbar { width: 5px; }
+    .inspector::-webkit-scrollbar-thumb { background: rgba(148,163,184,0.35); border-radius: 99px; }
+
+    .char-header {
+      display: flex; align-items: center; gap: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(148,163,184,0.18);
+    }
+    .char-avatar {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: grid; place-items: center;
+      font-weight: 800; font-size: 14px; color: #fff;
+      flex-shrink: 0;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+    }
+    .char-name { font-size: 14.5px; font-weight: 700; line-height: 1.3; }
+    .char-sub { font-size: 11px; color: #cbd5e1; margin-top: 2px; }
+    .tag-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .tag {
+      font-size: 10px; font-weight: 700;
+      padding: 3px 7px; border-radius: 6px;
+      background: rgba(255,255,255,0.1);
+      color: #f1f5f9;
+    }
+
+    .section-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.05em; color: #94a3b8;
+      margin-top: 9px; margin-bottom: 4px;
+    }
+    .info-box {
+      font-size: 11.5px; line-height: 1.48;
+      color: #e2e8f0;
+      background: rgba(15, 23, 42, 0.58);
+      border: 1px solid rgba(148,163,184,0.16);
+      border-radius: 9px;
+      padding: 7px 10px;
+    }
+    .restrict-box {
+      border-color: rgba(251, 191, 36, 0.35);
+      background: rgba(120, 53, 15, 0.25);
+      color: #fde68a;
+    }
+    .task-list {
+      font-size: 11.5px; line-height: 1.5;
+      color: #a5f3fc;
+      background: rgba(2, 6, 23, 0.68);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      border-radius: 9px;
+      padding: 8px 10px 8px 22px;
+    }
+    .task-list li { margin-bottom: 4px; }
+    .task-list li:last-child { margin-bottom: 0; }
+
+    .log-list { display: flex; flex-direction: column; gap: 6px; max-height: 175px; overflow-y: auto; }
+    .log-item {
+      font-size: 11.5px; line-height: 1.45;
+      padding: 7px 9px; border-radius: 8px;
+      background: rgba(30, 41, 59, 0.72);
+      border-left: 3px solid #3b82f6;
+      color: #f1f5f9;
+    }
+    .log-item .time { font-size: 10px; color: #94a3b8; margin-right: 5px; }
+
+    @media (max-width: 980px) {
+      .hud-top { flex-wrap: wrap; gap: 8px; }
+      .inspector {
+        top: auto;
+        bottom: 14px;
+        right: 14px;
+        width: 270px;
+        max-height: 46vh;
+      }
+      .hud-bottom-left { max-width: 255px; }
+    }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.168.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="canvas-container"></div>
+  <div id="labels-layer"></div>
+
+  <!-- Thanh Điều Khiển Phía Trên -->
+  <div class="hud-top">
+    <div class="hud-card brand">
+      <div class="brand-icon">XNK</div>
+      <div>
+        <h1>Văn Phòng Ảo Xuất Nhập Khẩu — New Wide</h1>
+        <p>Chủ quản: Chị Lan • Phối hợp 9 nhiệm vụ làm Báo Cáo Hải Quan (Chỉ xem, không sửa dữ liệu gốc)</p>
+      </div>
+    </div>
+
+    <div class="hud-card pipeline-bar" id="pipeline-bar">
+      <div class="phase-chip" data-phase="1">1. Lấy Số Liệu Gốc</div>
+      <div class="phase-chip" data-phase="2">2. Kiểm Tra 4 Mảng</div>
+      <div class="phase-chip" data-phase="3">3. Lập File Excel</div>
+      <div class="phase-chip" data-phase="4">4. Kiểm Tra Chéo</div>
+      <div class="phase-chip" data-phase="5">5. Bàn Giao</div>
+    </div>
+
+    <div class="hud-card hud-actions">
+      <div class="gates-badge" title="Số bước kiểm tra chất lượng đã đạt">
+        <span>Tiêu chuẩn</span>
+        <div class="gates-bar"><div class="gates-fill" id="gates-fill"></div></div>
+        <span id="gates-count">0/11</span>
+      </div>
+      <button class="btn btn-primary" id="btn-simulate">▶ Xem Quy Trình</button>
+      <button class="btn" id="btn-step">Từng Bước</button>
+      <button class="btn" id="btn-theme">🌙 Đêm</button>
+      <button class="btn" id="btn-reset">↺ Làm Lại</button>
+    </div>
+  </div>
+
+  <!-- Bản Đồ 3D & Danh Sách Nhiệm Vụ -->
+  <div class="hud-bottom-left">
+    <div class="hud-card">
+      <div class="minimap-title">
+        <span>Sơ Đồ Văn Phòng XNK (3D)</span>
+        <span style="font-weight:500;color:#94a3b8">Kéo / Cuộn để xoay</span>
+      </div>
+      <div class="zone-grid" id="zone-grid">
+        <button class="zone-btn active" data-zone="overview">
+          <span class="zone-swatch" style="background:#94a3b8"></span>Toàn Cảnh Văn Phòng
+        </button>
+        <button class="zone-btn" data-zone="command">
+          <span class="zone-swatch" style="background:#6366f1"></span>Phòng Chị Lan
+        </button>
+        <button class="zone-btn" data-zone="vault">
+          <span class="zone-swatch" style="background:#06b6d4"></span>Kho Số Liệu Gốc
+        </button>
+        <button class="zone-btn" data-zone="analytics">
+          <span class="zone-swatch" style="background:#10b981"></span>Nhóm Đối Chiếu (4 Bàn)
+        </button>
+        <button class="zone-btn" data-zone="forge">
+          <span class="zone-swatch" style="background:#8b5cf6"></span>Bàn Lập Sổ Excel
+        </button>
+        <button class="zone-btn" data-zone="qa">
+          <span class="zone-swatch" style="background:#ec4899"></span>Bàn Kiểm Tra Cuối
+        </button>
+      </div>
+    </div>
+
+    <div class="hud-card">
+      <div class="minimap-title"><span>9 Nhiệm Vụ Trong Văn Phòng</span></div>
+      <div class="roster-strip" id="roster-strip"></div>
+    </div>
+  </div>
+
+  <!-- Hồ Sơ Nhiệm Vụ Chi Tiết & Diễn Biến -->
+  <div class="inspector">
+    <div class="hud-card" id="inspector-card"></div>
+    <div class="hud-card">
+      <div class="minimap-title">
+        <span>Diễn Biến Công Việc</span>
+        <span id="sim-state-text" style="color:#6ee7b7">CHỜ LỆNH</span>
+      </div>
+      <div class="log-list" id="log-list">
+        <div class="log-item"><span class="time">00:00</span>Văn phòng đã sẵn sàng. Nhấn vào từng vị trí trên mô hình 3D hoặc bấm <b>▶ Xem Quy Trình</b> để xem chi tiết.</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    // =========================================================
+    // 1. DANH SÁCH 9 VỊ TRÍ THEO NHIỆM VỤ CHI TIẾT
+    // =========================================================
+    const CHARACTERS = [
+      {
+        id: 'orchestrator',
+        name: 'Chị Lan — Chủ Quản Điều Hành',
+        shortLabel: 'Chị Lan (Chủ Quản)',
+        role: 'Điều phối toàn bộ quy trình & ký duyệt cuối',
+        zone: 'command',
+        zoneLabel: 'Phòng Chủ Quản',
+        color: '#6366f1',
+        accent: '#a5b4fc',
+        initials: 'CQL',
+        hairColor: 0x292524,
+        female: true,
+        pos: [0, 0.38, -5.0],
+        facing: 0,
+        reads: 'Yêu cầu khoảng ngày cần đối chiếu từ công ty, thông số tổng hợp và phiếu xác nhận từ các bàn.',
+        writes: 'Kế hoạch chia việc cho từng bàn, thư mục làm việc riêng và chữ ký phát hành file Excel chính thức.',
+        restrictions: 'Chỉ chị Lan giữ quyền kết nối vào máy chủ hệ thống. Không chia sẻ mật khẩu cho nhân viên dưới quyền và không cho nhiều người sửa chung 1 file Excel.',
+        tasks: [
+          'Chốt khoảng thời gian cần đối chiếu (Từ ngày - Đến ngày) và tạo thư mục làm việc mới sạch sẽ.',
+          'Ra lệnh cho bộ phận Kho Số Liệu trích xuất dữ liệu gốc đúng 1 lần, kiểm tra mã niêm phong khớp 100%.',
+          'Giao việc song song cho 4 bàn Đối chiếu (Xuất, Nhập, Định mức, Thuế) và kiểm tra kết quả trả về.',
+          'Chỉ định duy nhất 1 người lập file Excel, sau đó chuyển qua 2 bàn Kiểm tra chéo độc lập.',
+          'Chỉ ký phát hành khi đạt đủ 11/11 tiêu chuẩn chất lượng; nếu có lỗi thì trả về sửa tối đa 2 lần.'
+        ]
+      },
+      {
+        id: 'data-extractor',
+        name: 'Trích Xuất Số Liệu SQL',
+        shortLabel: 'Trích Xuất SQL',
+        role: 'Lấy & niêm phong dữ liệu gốc từ DCS / ECUS',
+        zone: 'vault',
+        zoneLabel: 'Kho Số Liệu Gốc',
+        color: '#06b6d4',
+        accent: '#67e8f9',
+        initials: 'SQL',
+        hairColor: 0x1e293b,
+        female: false,
+        pos: [-7.0, 0.14, -1.6],
+        facing: Math.PI / 2,
+        reads: 'Dữ liệu thô từ phần mềm quản lý nhà máy (NW-DCS) và phần mềm Hải quan (ECUS5VNACCS).',
+        writes: '4 bộ hồ sơ số liệu sạch (Xuất khẩu, Nhập khẩu, Định mức, Thuế) kèm bảng kê niêm phong.',
+        restrictions: 'Chế độ CHỈ ĐỌC (Read-Only) tuyệt đối. Chỉ chạy lấy số liệu đúng 1 lần mỗi đợt, không sửa bất kỳ dòng nào trên hệ thống gốc.',
+        tasks: [
+          'Chạy công cụ lấy dữ liệu an toàn theo đúng ngày bắt đầu và ngày kết thúc được chị Lan giao.',
+          'Tách riêng 4 bộ dữ liệu độc lập: Xuất khẩu, Nhập khẩu, Định mức tiêu hao và Thuế/Nguyên phụ liệu.',
+          'Đếm tổng số dòng từng bảng và tạo mã niêm phong chống sửa đổi (SHA-256) cho toàn bộ gói số liệu.',
+          'Bàn giao đường dẫn hồ sơ sạch cho chị Lan để chia xuống 4 bàn đối chiếu, giữ kín hoàn toàn thông tin đăng nhập SQL.'
+        ]
+      },
+      {
+        id: 'export-analyst',
+        name: 'Đối Chiếu Xuất Khẩu',
+        shortLabel: 'Đối Chiếu Xuất',
+        role: 'Kiểm tra lượng hàng xuất kho vs tờ khai Hải quan',
+        zone: 'analytics',
+        zoneLabel: 'Bàn Xuất Khẩu',
+        color: '#10b981',
+        accent: '#6ee7b7',
+        initials: 'XK',
+        hairColor: 0x451a03,
+        female: true,
+        pos: [-5.4, 0.14, 3.55],
+        facing: Math.PI,
+        reads: 'Hồ sơ số liệu Xuất khẩu đã niêm phong & quy tắc đối chiếu hàng xuất.',
+        writes: 'Bảng tổng hợp tình trạng khớp/lệch hàng Xuất khẩu & danh sách đơn hàng bất thường.',
+        restrictions: 'Không tự ý truy cập máy chủ SQL, không trực tiếp mở sửa file Excel tổng, không tự gọi thêm người ngoài.',
+        tasks: [
+          'Kiểm tra số dòng dữ liệu Xuất khẩu nhận được có khớp hoàn toàn với bảng kê của Kho hay không.',
+          'Đối chiếu số lượng xuất giữa phần mềm nhà máy (DCS) và số liệu xuất chuẩn từ Hải quan (ECUS_ExportQTY_Stat).',
+          'Phân loại từng dòng theo đúng thứ tự ưu tiên: Khớp, Lệch số lượng (sai số > 0.01), Thiếu bên DCS hoặc Thiếu bên Hải quan.',
+          'Lọc ra các đơn hàng/tờ khai xuất có chênh lệch lớn nhất để báo cáo lên bàn Lập Sổ Excel.'
+        ]
+      },
+      {
+        id: 'import-analyst',
+        name: 'Đối Chiếu Nhập Khẩu',
+        shortLabel: 'Đối Chiếu Nhập',
+        role: 'Kiểm tra nguyên phụ liệu nhập kho vs tờ khai nhập',
+        zone: 'analytics',
+        zoneLabel: 'Bàn Nhập Khẩu',
+        color: '#3b82f6',
+        accent: '#93c5fd',
+        initials: 'NK',
+        hairColor: 0x0f172a,
+        female: false,
+        pos: [-2.2, 0.14, 3.55],
+        facing: Math.PI,
+        reads: 'Hồ sơ số liệu Nhập khẩu đã niêm phong & quy tắc ghép nối tờ khai nhập.',
+        writes: 'Bảng tổng hợp tình trạng khớp/lệch hàng Nhập khẩu & cảnh báo thiếu tờ khai.',
+        restrictions: 'Không truy cập SQL, không tự sửa file Excel; bắt buộc giữ nguyên định dạng văn bản của số tờ khai để không bị biến thành số khoa học.',
+        tasks: [
+          'Kiểm tra số dòng dữ liệu Nhập khẩu khớp với bảng kê niêm phong.',
+          'Đối chiếu lượng nguyên phụ liệu thực nhập vào kho so với lượng khai báo trên tờ khai nhập khẩu Hải quan.',
+          'Phát hiện các dòng bị thiếu do ghép nối một chiều (left-join) hoặc sai khác đơn vị tính giữa hai hệ thống.',
+          'Giữ nguyên chính xác từng chữ số mã tờ khai Hải quan và xuất bảng tổng hợp cho bộ phận Lập Sổ.'
+        ]
+      },
+      {
+        id: 'usage-analyst',
+        name: 'Kiểm Tra Định Mức NPL',
+        shortLabel: 'Định Mức NPL',
+        role: 'So sánh định mức tiêu hao vật tư trên từng mã hàng',
+        zone: 'analytics',
+        zoneLabel: 'Bàn Định Mức',
+        color: '#f59e0b',
+        accent: '#fcd34d',
+        initials: 'ĐM',
+        hairColor: 0x713f12,
+        female: true,
+        pos: [1.0, 0.14, 3.55],
+        facing: Math.PI,
+        reads: 'Hồ sơ Định mức tiêu hao (DCS vs Hải quan) & bảng quy đổi đơn vị tính chuẩn.',
+        writes: 'Bảng so sánh định mức tiêu hao & danh sách mã hàng lệch đơn vị tính.',
+        restrictions: 'Chỉ được phép so sánh định mức khi hai bên ĐÃ CÙNG đơn vị tính (kg, mét, cái...). Tuyệt đối không tự đoán hệ số quy đổi khi thiếu cơ sở.',
+        tasks: [
+          'Chuẩn hóa cách viết đơn vị tính (VD: MET/M, KGM/KG) trước khi đem đi so sánh.',
+          'So sánh định mức tiêu hao thực tế với định mức đã khai báo Hải quan (cho phép sai số làm tròn 0.000001).',
+          'Tách riêng các dòng khác đơn vị tính để cảnh báo cần kiểm tra hồ sơ quy đổi, không cộng gộp bừa bãi.',
+          'Ghi chú rõ giới hạn phiên bản định mức trên hệ thống Hải quan để đưa vào trang Thuyết minh báo cáo.'
+        ]
+      },
+      {
+        id: 'tax-analyst',
+        name: 'Tính Thuế & Rủi Ro NPL',
+        shortLabel: 'Thuế & NPL',
+        role: 'Tính chênh lệch tiền thuế & xếp hạng NPL rủi ro cao',
+        zone: 'analytics',
+        zoneLabel: 'Bàn Thuế & NPL',
+        color: '#ef4444',
+        accent: '#fca5a5',
+        initials: 'TH',
+        hairColor: 0x1e293b,
+        female: false,
+        pos: [4.2, 0.14, 3.55],
+        facing: Math.PI,
+        reads: 'Hồ sơ Thuế suất, đơn giá & danh sách mã Nguyên phụ liệu (NPL).',
+        writes: 'Bảng tính lại tiền thuế theo từng mã NPL & bảng xếp hạng NPL có rủi ro lớn nhất.',
+        restrictions: 'Không tự điền bừa thuế suất nếu bị thiếu. Nếu 1 mã NPL có 2 mức thuế khác nhau phải để trống ô tiền thuế và gắn cờ "Mâu thuẫn thuế suất | 稅率衝突".',
+        tasks: [
+          'Kiểm tra tính duy nhất của từng mã NPL (sau khi cắt khoảng trắng thừa đầu/cuối).',
+          'Tính lại tiền thuế chênh lệch theo công thức chuẩn có VAT 10% (ECUS_TaxCaculate), khớp với hệ thống trong phạm vi 0.01.',
+          'Giữ trống các dòng thiếu thuế suất và đánh dấu rõ để ban giám đốc xử lý, tuyệt đối không tự ước lượng.',
+          'Xếp hạng các mã NPL từ cao xuống thấp theo giá trị tuyệt đối chênh lệch tiền thuế để cảnh báo rủi ro.'
+        ]
+      },
+      {
+        id: 'workbook-builder',
+        name: 'Lập Sổ Excel 7 Trang',
+        shortLabel: 'Lập Sổ Excel',
+        role: 'Người duy nhất tạo & chỉnh sửa file báo cáo .xlsx',
+        zone: 'forge',
+        zoneLabel: 'Bàn Lập Sổ Excel',
+        color: '#8b5cf6',
+        accent: '#c4b5fd',
+        initials: 'XLS',
+        hairColor: 0x3b0764,
+        female: true,
+        pos: [7.1, 0.18, 0.1],
+        facing: -Math.PI / 2,
+        reads: '4 bộ số liệu gốc + 4 bảng kết quả đã duyệt từ nhóm Đối chiếu + quy chuẩn mẫu báo cáo.',
+        writes: '1 file Excel nháp hoàn chỉnh (7 trang song ngữ Việt - Hoa) & hình ảnh chụp từng trang.',
+        restrictions: 'Là NGƯỜI DUY NHẤT được phép ghi vào file Excel. Mọi cột chênh lệch, trạng thái, tổng cộng phải viết bằng công thức Excel động, không điền số chết.',
+        tasks: [
+          'Dựng đủ 7 trang tính song ngữ Việt - Hoa: Tổng quan, Chi tiết Xuất, Chi tiết Nhập, Định mức, Thuế chi tiết, Tổng hợp NPL rủi ro, Nguồn & Giới hạn.',
+          'Viết công thức Excel tự động cho toàn bộ cột tính toán, tô màu phân biệt trạng thái Khớp / Lệch / Thiếu.',
+          'Đóng băng dòng tiêu đề, bật bộ lọc tự động cho các bảng dữ liệu lớn và vẽ biểu đồ trực quan.',
+          'Tiếp nhận danh sách lỗi từ 2 bàn Kiểm tra chéo (nếu có) và sửa đúng trọng tâm (tối đa 2 lượt sửa).'
+        ]
+      },
+      {
+        id: 'logic-qa',
+        name: 'Kiểm Định Số Liệu',
+        shortLabel: 'Kiểm Định Số Liệu',
+        role: 'Kiểm tra công thức, tổng cộng & khớp thuế độc lập',
+        zone: 'qa',
+        zoneLabel: 'Bàn Kiểm Tra Số Liệu',
+        color: '#14b8a6',
+        accent: '#5eead4',
+        initials: 'QA1',
+        hairColor: 0x0f172a,
+        female: false,
+        pos: [4.8, 0.22, -4.5],
+        facing: 0,
+        reads: 'File Excel nháp, bảng kê niêm phong gốc và 4 bảng kết quả của nhóm Đối chiếu.',
+        writes: 'Phiếu kết quả Kiểm định Logic (Đạt / Danh sách lỗi công thức cần sửa).',
+        restrictions: 'Làm việc ở chế độ CHỈ ĐỌC. Không tự ý mở file Excel ra sửa hộ để đảm bảo tính kiểm toán độc lập.',
+        tasks: [
+          'Quét toàn bộ 7 trang tính để chắc chắn không có bất kỳ ô lỗi công thức nào (#REF!, #DIV/0!, #VALUE!, #NAME?).',
+          'Đối chiếu tổng số dòng, tổng số lượng Xuất/Nhập và bảng xếp hạng NPL khớp 100% với số liệu chi tiết.',
+          'Kiểm tra từng dòng tính thuế 10% khớp với công thức chuẩn trong sai số <= 0.01 và xác nhận mã mâu thuẫn thuế đã được giữ trống.',
+          'Kiểm tra số tờ khai Hải quan còn nguyên vẹn chuỗi số, không bị Excel làm tròn hay đổi sang dạng 1.23E+11.'
+        ]
+      },
+      {
+        id: 'visual-qa',
+        name: 'Kiểm Định Trình Bày',
+        shortLabel: 'Kiểm Định Trình Bày',
+        role: 'Kiểm tra hiển thị 7 trang, chữ Việt-Hoa & biểu đồ',
+        zone: 'qa',
+        zoneLabel: 'Bàn Kiểm Tra Trình Bày',
+        color: '#ec4899',
+        accent: '#f9a8d4',
+        initials: 'QA2',
+        hairColor: 0x500724,
+        female: true,
+        pos: [7.4, 0.22, -4.5],
+        facing: 0,
+        reads: 'Hình ảnh kết xuất của cả 7 trang Excel nháp & quy chuẩn trình bày song ngữ.',
+        writes: 'Phiếu kết quả Kiểm định Hiển thị (Đạt / Danh sách lỗi bố cục, mất chữ).',
+        restrictions: 'Làm việc ở chế độ CHỈ ĐỌC. Không tự ý chỉnh độ rộng cột hay màu sắc trực tiếp trong file Excel.',
+        tasks: [
+          'Mở xem toàn bộ 7 trang tính đã dựng để kiểm tra bố cục tổng thể và tiêu đề song ngữ Việt / Hoa Phồn Thể.',
+          'Phát hiện các ô bị tràn chữ, khuất chữ (###), mất viền bảng hoặc sai màu cảnh báo trạng thái.',
+          'Xác nhận các bảng dữ liệu lớn đều đã bật bộ lọc (Filter) và cố định dòng tiêu đề (Freeze Panes).',
+          'Đánh giá độ rõ nét của biểu đồ xếp hạng NPL và phần ghi chú giới hạn dữ liệu ở trang cuối.'
+        ]
+      }
+    ];
+
+    const ZONES = {
+      overview:  { pos: [0, 0.5, 0],       cam: [20.5, 16.5, 20.5] },
+      command:   { pos: [0, 1.0, -4.6],    cam: [6.5, 7.5, 3.5] },
+      vault:     { pos: [-7.2, 0.8, -1.6], cam: [-14, 7.5, 5.5] },
+      analytics: { pos: [-0.6, 0.6, 3.0],  cam: [-0.6, 8.5, 13.8] },
+      forge:     { pos: [7.2, 0.8, 0.2],   cam: [15.5, 7.5, 7] },
+      qa:        { pos: [6.1, 0.9, -4.0],  cam: [13, 8, -11.5] }
+    };
+
+    // =========================================================
+    // 2. THREE.JS SCENE & ÁNH SÁNG
+    // =========================================================
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+
+    let isNightMode = false;
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    container.appendChild(renderer.domElement);
+
+    const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 160);
+    camera.position.set(20.5, 16.5, 20.5);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.07;
+    controls.maxPolarAngle = Math.PI / 2.15;
+    controls.minDistance = 7;
+    controls.maxDistance = 42;
+    controls.target.set(0, 0.5, 0);
+
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x475569, 1.25);
+    scene.add(hemiLight);
+
+    const dirLight = new THREE.DirectionalLight(0xfffbeb, 1.65);
+    dirLight.position.set(16, 24, 15);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.set(2048, 2048);
+    dirLight.shadow.camera.near = 2;
+    dirLight.shadow.camera.far = 60;
+    const d = 17;
+    dirLight.shadow.camera.left = -d;
+    dirLight.shadow.camera.right = d;
+    dirLight.shadow.camera.top = d;
+    dirLight.shadow.camera.bottom = -d;
+    dirLight.shadow.bias = -0.0004;
+    scene.add(dirLight);
+
+    const fillLight = new THREE.DirectionalLight(0x93c5fd, 0.45);
+    fillLight.position.set(-15, 10, 12);
+    scene.add(fillLight);
+
+    function flatMat(color, opts = {}) {
+      return new THREE.MeshStandardMaterial({
+        color,
+        flatShading: true,
+        roughness: opts.roughness ?? 0.65,
+        metalness: opts.metalness ?? 0.06,
+        emissive: opts.emissive ?? 0x000000,
+        emissiveIntensity: opts.emissiveIntensity ?? 0,
+        transparent: opts.transparent ?? false,
+        opacity: opts.opacity ?? 1
+      });
+    }
+
+    const worldGroup = new THREE.Group();
+    scene.add(worldGroup);
+
+    // =========================================================
+    // 3. KIẾN TRÚC VĂN PHÒNG CẮT LỚP CHI TIẾT CAO
+    // =========================================================
+    const slabBase = new THREE.Mesh(new THREE.BoxGeometry(22.4, 0.65, 16.8), flatMat(0x334155));
+    slabBase.position.y = -0.36;
+    slabBase.receiveShadow = true;
+    worldGroup.add(slabBase);
+
+    const woodFloor = new THREE.Mesh(new THREE.BoxGeometry(21.6, 0.08, 16.0), flatMat(0xe7d3b7, { roughness: 0.72 }));
+    woodFloor.position.y = -0.02;
+    woodFloor.receiveShadow = true;
+    worldGroup.add(woodFloor);
+
+    const floorGrid = new THREE.GridHelper(20.5, 20, 0xd6bfa0, 0xdec9aa);
+    floorGrid.position.y = 0.025;
+    worldGroup.add(floorGrid);
+
+    // Tường Bắc có cửa sổ kính lớn & khung nhôm
+    const northWallBottom = new THREE.Mesh(new THREE.BoxGeometry(21.6, 1.1, 0.3), flatMat(0xf1f5f9));
+    northWallBottom.position.set(0, 0.55, -7.85);
+    northWallBottom.castShadow = true; northWallBottom.receiveShadow = true;
+    worldGroup.add(northWallBottom);
+
+    const northWallTop = new THREE.Mesh(new THREE.BoxGeometry(21.6, 0.6, 0.3), flatMat(0xf1f5f9));
+    northWallTop.position.set(0, 3.25, -7.85);
+    northWallTop.castShadow = true;
+    worldGroup.add(northWallTop);
+
+    [-10.65, -4.5, 4.5, 10.65].forEach(wx => {
+      const col = new THREE.Mesh(new THREE.BoxGeometry(0.45, 3.55, 0.35), flatMat(0xe2e8f0));
+      col.position.set(wx, 1.77, -7.85);
+      col.castShadow = true;
+      worldGroup.add(col);
+    });
+    const northGlass = new THREE.Mesh(
+      new THREE.BoxGeometry(20.8, 1.85, 0.08),
+      flatMat(0xbae6fd, { transparent: true, opacity: 0.3, roughness: 0.08 })
+    );
+    northGlass.position.set(0, 2.02, -7.85);
+    worldGroup.add(northGlass);
+
+    // Biển hiệu công ty, Đồng hồ & Điều hòa
+    const signBoard = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.68, 0.12), flatMat(0x1e3a8a));
+    signBoard.position.set(0, 2.95, -7.65);
+    worldGroup.add(signBoard);
+    const signAccent = new THREE.Mesh(new THREE.BoxGeometry(4.0, 0.08, 0.14), flatMat(0x38bdf8, { emissive: 0x0ea5e9, emissiveIntensity: 0.45 }));
+    signAccent.position.set(0, 2.65, -7.65);
+    worldGroup.add(signAccent);
+
+    const clockFace = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.08, 16), flatMat(0xffffff));
+    clockFace.rotation.x = Math.PI / 2;
+    clockFace.position.set(-4.5, 2.6, -7.62);
+    worldGroup.add(clockFace);
+
+    const acUnit = new THREE.Mesh(new THREE.BoxGeometry(1.75, 0.42, 0.38), flatMat(0xffffff));
+    acUnit.position.set(4.5, 2.85, -7.5);
+    acUnit.castShadow = true;
+    worldGroup.add(acUnit);
+
+    // Tường Tây + Bảng Kanban + Cửa ra vào văn phòng
+    const westWall = new THREE.Mesh(new THREE.BoxGeometry(0.3, 3.55, 16.0), flatMat(0xe2e8f0));
+    westWall.position.set(-10.65, 1.77, 0);
+    westWall.castShadow = true; westWall.receiveShadow = true;
+    worldGroup.add(westWall);
+
+    const kanban = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.4, 2.8), flatMat(0xffffff));
+    kanban.position.set(-10.45, 1.9, 1.6);
+    worldGroup.add(kanban);
+    [0x10b981, 0xf59e0b, 0x3b82f6, 0xef4444].forEach((c, i) => {
+      const note = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.35, 0.42), flatMat(c));
+      note.position.set(-10.42, 2.15 - (i % 2) * 0.5, 0.8 + i * 0.55);
+      worldGroup.add(note);
+    });
+
+    // Thảm khu vực
+    const zonePads = {};
+    function createCarpetZone(id, x, z, w, d, h, color, carpetCol) {
+      const g = new THREE.Group();
+      const pad = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), flatMat(carpetCol, { roughness: 0.9 }));
+      pad.position.set(x, h / 2 + 0.02, z);
+      pad.receiveShadow = true;
+      g.add(pad);
+
+      const trim = new THREE.Mesh(
+        new THREE.BoxGeometry(w + 0.08, 0.03, d + 0.08),
+        flatMat(color, { emissive: color, emissiveIntensity: 0.18 })
+      );
+      trim.position.set(x, h + 0.015, z);
+      g.add(trim);
+
+      worldGroup.add(g);
+      zonePads[id] = { x, z, h, color };
+    }
+
+    createCarpetZone('command',   0,    -5.0, 5.6, 4.2, 0.24, 0x6366f1, 0xc7d2fe);
+    createCarpetZone('vault',    -7.4,  -1.8, 4.2, 4.8, 0.06, 0x06b6d4, 0xcffafe);
+    createCarpetZone('analytics',-0.6,   3.0, 13.4,4.4, 0.05, 0x10b981, 0xdbeafe);
+    createCarpetZone('forge',     7.3,   0.1, 4.2, 4.4, 0.08, 0x8b5cf6, 0xede9fe);
+    createCarpetZone('qa',        6.1,  -4.6, 5.8, 4.2, 0.12, 0xec4899, 0xfce7f3);
+
+    // Vách kính phòng Chủ Quản + Cửa kính vào phòng
+    function addGlassPartition(x, y, z, w, h, d) {
+      const glass = new THREE.Mesh(
+        new THREE.BoxGeometry(w, h, d),
+        flatMat(0xbae6fd, { transparent: true, opacity: 0.28, roughness: 0.08 })
+      );
+      glass.position.set(x, y, z);
+      worldGroup.add(glass);
+
+      const topBar = new THREE.Mesh(new THREE.BoxGeometry(w + 0.04, 0.07, d + 0.04), flatMat(0x334155));
+      topBar.position.set(x, y + h / 2, z);
+      worldGroup.add(topBar);
+    }
+    addGlassPartition(-2.78, 1.35, -5.0, 0.07, 2.2, 4.2);
+    addGlassPartition(2.78, 1.35, -5.0, 0.07, 2.2, 4.2);
+    addGlassPartition(-1.7, 1.35, -2.92, 2.1, 2.2, 0.07);
+    addGlassPartition(1.7, 1.35, -2.92, 2.1, 2.2, 0.07);
+
+    // Đèn thanh văn phòng treo lơ lửng (phát sáng dịu)
+    const ceilingLights = [];
+    function addCeilingLight(x, y, z, w = 2.6) {
+      const fixture = new THREE.Mesh(new THREE.BoxGeometry(w, 0.08, 0.24), flatMat(0x334155));
+      fixture.position.set(x, y, z);
+      worldGroup.add(fixture);
+      const tube = new THREE.Mesh(
+        new THREE.BoxGeometry(w - 0.12, 0.05, 0.18),
+        flatMat(0xfef9c3, { emissive: 0xfef08a, emissiveIntensity: 0.65 })
+      );
+      tube.position.set(x, y - 0.04, z);
+      worldGroup.add(tube);
+      ceilingLights.push(tube);
+    }
+    addCeilingLight(0, 3.3, -4.8, 2.8);
+    addCeilingLight(-3.8, 3.3, 2.3, 3.2);
+    addCeilingLight(2.6, 3.3, 2.3, 3.2);
+    addCeilingLight(6.1, 3.3, -4.3, 3.0);
+
+    // =========================================================
+    // 4. NỘI THẤT VĂN PHÒNG SIÊU CHI TIẾT
+    // =========================================================
+    function createOfficeChair(x, y, z, rotY, color = 0x1e293b) {
+      const g = new THREE.Group();
+      const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.35, 6), flatMat(0x64748b));
+      stem.position.y = 0.2;
+      g.add(stem);
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.34, 0.06, 5), flatMat(0x475569));
+      base.position.y = 0.04;
+      g.add(base);
+      const seat = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.09, 0.5), flatMat(color));
+      seat.position.y = 0.4;
+      seat.castShadow = true;
+      g.add(seat);
+      const back = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.62, 0.09), flatMat(color));
+      back.position.set(0, 0.72, -0.22);
+      back.castShadow = true;
+      g.add(back);
+      [-0.27, 0.27].forEach(ax => {
+        const arm = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.22, 0.35), flatMat(0x334155));
+        arm.position.set(ax, 0.52, -0.02);
+        g.add(arm);
+      });
+      g.position.set(x, y, z);
+      g.rotation.y = rotY;
+      worldGroup.add(g);
+    }
+
+    function createWorkstation(x, y, z, rotY, screenColor, hasDual = true) {
+      const g = new THREE.Group();
+      // Mặt bàn gỗ sồi
+      const top = new THREE.Mesh(new THREE.BoxGeometry(2.15, 0.08, 1.05), flatMat(0xd99b52));
+      top.position.y = 0.75;
+      top.castShadow = true; top.receiveShadow = true;
+      g.add(top);
+      // Chân bàn
+      [-0.95, 0.95].forEach(lx => {
+        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.72, 0.9), flatMat(0x334155));
+        leg.position.set(lx, 0.36, 0);
+        leg.castShadow = true;
+        g.add(leg);
+      });
+      // Hộc tủ di động
+      const drawer = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.56, 0.75), flatMat(0xf8fafc));
+      drawer.position.set(0.66, 0.3, 0.05);
+      drawer.castShadow = true;
+      g.add(drawer);
+      // Thùng PC Case bên trái dưới bàn
+      const pc = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.48, 0.48), flatMat(0x1e293b));
+      pc.position.set(-0.72, 0.28, 0.05);
+      pc.castShadow = true;
+      g.add(pc);
+      const pcLed = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.34, 0.03), flatMat(screenColor, { emissive: screenColor, emissiveIntensity: 0.8 }));
+      pcLed.position.set(-0.6, 0.28, 0.28);
+      g.add(pcLed);
+      // Màn hình chính
+      const mon1 = new THREE.Mesh(new THREE.BoxGeometry(0.88, 0.52, 0.05), flatMat(0x0f172a));
+      mon1.position.set(hasDual ? -0.32 : 0, 1.12, -0.25);
+      mon1.castShadow = true;
+      g.add(mon1);
+      const scr1 = new THREE.Mesh(
+        new THREE.BoxGeometry(0.8, 0.44, 0.02),
+        flatMat(screenColor, { emissive: screenColor, emissiveIntensity: 0.45 })
+      );
+      scr1.position.set(hasDual ? -0.32 : 0, 1.12, -0.22);
+      g.add(scr1);
+      if (hasDual) {
+        const mon2 = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.48, 0.05), flatMat(0x0f172a));
+        mon2.position.set(0.54, 1.1, -0.18);
+        mon2.rotation.y = -0.28;
+        mon2.castShadow = true;
+        g.add(mon2);
+        const scr2 = new THREE.Mesh(
+          new THREE.BoxGeometry(0.68, 0.4, 0.02),
+          flatMat(0x38bdf8, { emissive: 0x0284c7, emissiveIntensity: 0.35 })
+        );
+        scr2.position.set(0.53, 1.1, -0.15);
+        scr2.rotation.y = -0.28;
+        g.add(scr2);
+      }
+      // Bàn phím & chuột
+      const kb = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.02, 0.16), flatMat(0x1e293b));
+      kb.position.set(-0.1, 0.8, 0.15);
+      g.add(kb);
+      const mouse = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.025, 0.11), flatMat(0x0f172a));
+      mouse.position.set(0.24, 0.8, 0.15);
+      g.add(mouse);
+      // Đèn bàn nhỏ
+      const lampArm = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.025, 0.35, 6), flatMat(0x475569));
+      lampArm.position.set(-0.88, 0.96, -0.3);
+      g.add(lampArm);
+      const lampHead = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.14, 8), flatMat(0xfef08a, { emissive: 0xfde047, emissiveIntensity: 0.4 }));
+      lampHead.position.set(-0.84, 1.13, -0.25);
+      lampHead.rotation.z = -0.4;
+      g.add(lampHead);
+      // Chồng hồ sơ & cốc cà phê
+      const paper = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.16, 0.24), flatMat(0xffffff));
+      paper.position.set(-0.78, 0.87, 0.2);
+      paper.castShadow = true;
+      g.add(paper);
+      const mug = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.05, 0.11, 8), flatMat(0xfef08a));
+      mug.position.set(0.42, 0.84, 0.24);
+      g.add(mug);
+      // Thùng rác nhỏ cạnh bàn
+      const bin = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.13, 0.32, 8), flatMat(0x64748b));
+      bin.position.set(1.22, 0.16, 0.2);
+      g.add(bin);
+
+      g.position.set(x, y, z);
+      g.rotation.y = rotY;
+      worldGroup.add(g);
+    }
+
+    // A) Phòng Chủ Quản Chị Lan + Bàn họp tròn + 2 ghế tiếp khách
+    createWorkstation(0, 0.26, -3.9, Math.PI, 0x6366f1, true);
+    createOfficeChair(0, 0.26, -5.05, 0, 0x312e81);
+    const meetTable = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.07, 12), flatMat(0xf8fafc));
+    meetTable.position.set(-1.85, 0.96, -5.85);
+    meetTable.castShadow = true;
+    worldGroup.add(meetTable);
+    const meetLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.25, 0.7, 8), flatMat(0x64748b));
+    meetLeg.position.set(-1.85, 0.6, -5.85);
+    worldGroup.add(meetLeg);
+    createOfficeChair(-1.85, 0.26, -6.7, 0, 0x475569);
+    createOfficeChair(-1.05, 0.26, -5.85, -Math.PI / 2, 0x475569);
+
+    // B) Kho Số Liệu Gốc (Server + Bàn điều khiển)
+    for (let i = 0; i < 3; i++) {
+      const rack = new THREE.Mesh(new THREE.BoxGeometry(0.85, 2.05, 0.75), flatMat(0x0f172a, { metalness: 0.45 }));
+      rack.position.set(-9.05, 1.08, -3.2 + i * 1.3);
+      rack.castShadow = true;
+      worldGroup.add(rack);
+      const led = new THREE.Mesh(
+        new THREE.BoxGeometry(0.06, 1.65, 0.48),
+        flatMat(0x06b6d4, { emissive: 0x06b6d4, emissiveIntensity: 0.9 })
+      );
+      led.position.set(-8.6, 1.08, -3.2 + i * 1.3);
+      worldGroup.add(led);
+    }
+    createWorkstation(-6.3, 0.08, -1.6, -Math.PI / 2, 0x06b6d4, false);
+    createOfficeChair(-7.05, 0.08, -1.6, Math.PI / 2, 0x0e7490);
+
+    // C) Nhóm Đối Chiếu 4 Bàn + Vách ngăn + Kệ cuộn vải NPL
+    const deskColors = [0x10b981, 0x3b82f6, 0xf59e0b, 0xef4444];
+    [-5.4, -2.2, 1.0, 4.2].forEach((dx, idx) => {
+      createWorkstation(dx, 0.07, 2.25, 0, deskColors[idx], true);
+      createOfficeChair(dx, 0.07, 3.6, Math.PI, 0x334155);
+      if (idx < 3) {
+        const div = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.5, 1.1), flatMat(0x94a3b8));
+        div.position.set(dx + 1.6, 1.05, 2.25);
+        worldGroup.add(div);
+      }
+    });
+
+    const fabricRack = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.9, 0.55), flatMat(0x475569));
+    fabricRack.position.set(2.4, 0.5, 4.75);
+    fabricRack.castShadow = true;
+    worldGroup.add(fabricRack);
+    [0x2563eb, 0x059669, 0xd97706, 0xe11d48].forEach((col, i) => {
+      const roll = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 0.85, 8), flatMat(col));
+      roll.rotation.z = Math.PI / 2;
+      roll.position.set(2.4, 1.06 + (i % 2) * 0.22, 4.6 + Math.floor(i / 2) * 0.28);
+      roll.castShadow = true;
+      worldGroup.add(roll);
+    });
+
+    // D) Bàn Lập Sổ Excel + Máy In / Photocopy
+    createWorkstation(8.1, 0.1, 0.1, Math.PI / 2, 0x8b5cf6, true);
+    createOfficeChair(7.1, 0.1, 0.1, -Math.PI / 2, 0x5b21b6);
+
+    const printer = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.05, 0.9), flatMat(0xf8fafc));
+    printer.position.set(8.6, 0.6, 1.75);
+    printer.castShadow = true;
+    worldGroup.add(printer);
+    const printerTop = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.14, 0.85), flatMat(0x475569));
+    printerTop.position.set(8.6, 1.18, 1.75);
+    worldGroup.add(printerTop);
+
+    // E) Bàn Kiểm Tra Cuối
+    createWorkstation(4.8, 0.14, -3.5, Math.PI, 0x14b8a6, true);
+    createOfficeChair(4.8, 0.14, -4.55, 0, 0x0f766e);
+    createWorkstation(7.4, 0.14, -3.5, Math.PI, 0xec4899, true);
+    createOfficeChair(7.4, 0.14, -4.55, 0, 0x9d174d);
+
+    // F) Tủ Hồ Sơ Chứng Từ & Quầy Pantry Cà Phê
+    for (let i = 0; i < 3; i++) {
+      const cab = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.65, 0.55), flatMat(0xcbd5e1));
+      cab.position.set(-9.65, 0.85, 2.5 + i * 1.35);
+      cab.castShadow = true;
+      worldGroup.add(cab);
+      [0x2563eb, 0xdc2626, 0x16a34a].forEach((bc, j) => {
+        const binder = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.34, 0.1), flatMat(bc));
+        binder.position.set(-9.4, 1.3, 2.3 + i * 1.35 + j * 0.16);
+        worldGroup.add(binder);
+      });
+    }
+
+    const pantryCounter = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.9, 0.75), flatMat(0xf8fafc));
+    pantryCounter.position.set(-8.9, 0.45, -6.2);
+    pantryCounter.castShadow = true;
+    worldGroup.add(pantryCounter);
+    const coffeeMachine = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.48, 0.38), flatMat(0x1e293b));
+    coffeeMachine.position.set(-8.6, 1.14, -6.2);
+    worldGroup.add(coffeeMachine);
+    const waterCooler = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.95, 0.42), flatMat(0xe2e8f0));
+    waterCooler.position.set(-7.5, 0.48, -6.2);
+    waterCooler.castShadow = true;
+    worldGroup.add(waterCooler);
+    const waterJug = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.45, 10), flatMat(0x38bdf8, { transparent: true, opacity: 0.72 }));
+    waterJug.position.set(-7.5, 1.18, -6.2);
+    worldGroup.add(waterJug);
+
+    // G) Bến Container XNK + Xe Nâng Mini + Pallet Hàng
+    function addContainer(x, z, color, rotY = 0) {
+      const g = new THREE.Group();
+      const box = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.05, 0.95), flatMat(color));
+      box.position.y = 0.525;
+      box.castShadow = true; box.receiveShadow = true;
+      g.add(box);
+      for (let i = -0.75; i <= 0.75; i += 0.3) {
+        const rib = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.08, 0.98), flatMat(color));
+        rib.position.set(i, 0.525, 0);
+        g.add(rib);
+      }
+      g.position.set(x, 0, z);
+      g.rotation.y = rotY;
+      worldGroup.add(g);
+    }
+    addContainer(-8.2, 6.45, 0x0284c7, 0.05);
+    addContainer(-5.6, 6.55, 0xea580c, -0.04);
+
+    // Xe nâng hàng mini màu vàng cạnh container
+    const forklift = new THREE.Group();
+    const fkBody = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.55, 0.55), flatMat(0xf59e0b));
+    fkBody.position.y = 0.35;
+    fkBody.castShadow = true;
+    forklift.add(fkBody);
+    const fkMast = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.05, 0.45), flatMat(0x1e293b));
+    fkMast.position.set(0.45, 0.55, 0);
+    forklift.add(fkMast);
+    const fkPallet = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.42, 0.5), flatMat(0xd97706));
+    fkPallet.position.set(0.8, 0.32, 0);
+    fkPallet.castShadow = true;
+    forklift.add(fkPallet);
+    forklift.position.set(-3.2, 0, 6.4);
+    forklift.rotation.y = 0.25;
+    worldGroup.add(forklift);
+
+    function addOfficePlant(x, z) {
+      const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.2, 0.45, 8), flatMat(0xb45309));
+      pot.position.set(x, 0.22, z);
+      pot.castShadow = true;
+      worldGroup.add(pot);
+      const leaves = new THREE.Mesh(new THREE.DodecahedronGeometry(0.46, 0), flatMat(0x16a34a));
+      leaves.position.set(x, 0.74, z);
+      leaves.castShadow = true;
+      worldGroup.add(leaves);
+    }
+    addOfficePlant(9.5, 6.2);
+    addOfficePlant(9.5, -6.4);
+    addOfficePlant(-3.4, -6.8);
+
+    // =========================================================
+    // 5. NHÂN VẬT 3D CHI TIẾT
+    // =========================================================
+    const charMeshes = [];
+    const charMap = {};
+
+    function createDetailedCharacter(cfg) {
+      const group = new THREE.Group();
+      group.position.set(cfg.pos[0], cfg.pos[1], cfg.pos[2]);
+      group.rotation.y = cfg.facing;
+      group.userData = { charId: cfg.id };
+
+      const cMain = new THREE.Color(cfg.color);
+
+      const ring = new THREE.Mesh(
+        new THREE.RingGeometry(0.5, 0.66, 20),
+        new THREE.MeshBasicMaterial({ color: cMain, side: THREE.DoubleSide, transparent: true, opacity: 0.45 })
+      );
+      ring.rotation.x = -Math.PI / 2;
+      ring.position.y = 0.02;
+      group.add(ring);
+
+      const bodyGroup = new THREE.Group();
+      group.add(bodyGroup);
+
+      [-0.1, 0.1].forEach(lx => {
+        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.42, 0.16), flatMat(0x1e293b));
+        leg.position.set(lx, 0.25, 0);
+        leg.castShadow = true;
+        bodyGroup.add(leg);
+      });
+
+      const torso = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.5, 0.24), flatMat(cMain));
+      torso.position.y = 0.7;
+      torso.castShadow = true;
+      bodyGroup.add(torso);
+
+      const collar = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.08, 0.25), flatMat(0xffffff));
+      collar.position.set(0, 0.92, 0.01);
+      bodyGroup.add(collar);
+
+      const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.42, 0.13), flatMat(cMain));
+      leftArm.position.set(-0.29, 0.72, 0.05);
+      leftArm.castShadow = true;
+      bodyGroup.add(leftArm);
+
+      const rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.42, 0.13), flatMat(cMain));
+      rightArm.position.set(0.29, 0.72, 0.05);
+      rightArm.castShadow = true;
+      bodyGroup.add(rightArm);
+
+      const head = new THREE.Mesh(new THREE.IcosahedronGeometry(0.22, 1), flatMat(0xfde68a));
+      head.position.y = 1.18;
+      head.castShadow = true;
+      bodyGroup.add(head);
+
+      const hair = new THREE.Mesh(
+        new THREE.BoxGeometry(0.44, cfg.female ? 0.34 : 0.18, 0.42),
+        flatMat(cfg.hairColor)
+      );
+      hair.position.set(0, cfg.female ? 1.24 : 1.32, -0.04);
+      hair.castShadow = true;
+      bodyGroup.add(hair);
+
+      const gem = new THREE.Mesh(
+        new THREE.OctahedronGeometry(0.11, 0),
+        flatMat(cMain, { emissive: cMain, emissiveIntensity: 0.7 })
+      );
+      gem.position.y = 1.68;
+      bodyGroup.add(gem);
+
+      worldGroup.add(group);
+      const entry = {
+        cfg, group, bodyGroup, ring, gem, leftArm, rightArm,
+        status: 'Đang chờ',
+        working: false,
+        phaseOffset: Math.random() * Math.PI * 2
+      };
+      charMeshes.push(entry);
+      charMap[cfg.id] = entry;
+    }
+
+    CHARACTERS.forEach(createDetailedCharacter);
+
+    // =========================================================
+    // 6. ĐƯỜNG LUÂN CHUYỂN HỒ SƠ
+    // =========================================================
+    const CONDUITS = [
+      { from: 'vault',     to: 'command',   color: 0x06b6d4 },
+      { from: 'command',   to: 'analytics', color: 0x6366f1 },
+      { from: 'analytics', to: 'forge',     color: 0x10b981 },
+      { from: 'forge',     to: 'qa',        color: 0x8b5cf6 },
+      { from: 'qa',        to: 'command',   color: 0xec4899 }
+    ];
+
+    const conduitCurves = {};
+    CONDUITS.forEach(c => {
+      const p1 = zonePads[c.from];
+      const p2 = zonePads[c.to];
+      const curve = new THREE.QuadraticBezierCurve3(
+        new THREE.Vector3(p1.x, 0.25, p1.z),
+        new THREE.Vector3((p1.x + p2.x) / 2, 1.45, (p1.z + p2.z) / 2),
+        new THREE.Vector3(p2.x, 0.25, p2.z)
+      );
+      const pts = curve.getPoints(28);
+      const geo = new THREE.BufferGeometry().setFromPoints(pts);
+      const mat = new THREE.LineBasicMaterial({ color: c.color, transparent: true, opacity: 0.45 });
+      worldGroup.add(new THREE.Line(geo, mat));
+      conduitCurves[`${c.from}->${c.to}`] = { curve, color: c.color };
+    });
+
+    const activePackets = [];
+    function spawnPacket(routeKey, count = 3) {
+      const info = conduitCurves[routeKey];
+      if (!info) return;
+      for (let i = 0; i < count; i++) {
+        const mesh = new THREE.Mesh(
+          new THREE.BoxGeometry(0.26, 0.26, 0.26),
+          flatMat(info.color, { emissive: info.color, emissiveIntensity: 0.85 })
+        );
+        worldGroup.add(mesh);
+        activePackets.push({ mesh, curve: info.curve, t: -i * 0.18, speed: 0.65 });
+      }
+    }
+
+    // =========================================================
+    // 7. NHÃN NHIỆM VỤ & HỒ SƠ CHI TIẾT
+    // =========================================================
+    const labelsLayer = document.getElementById('labels-layer');
+    const labelEls = {};
+
+    CHARACTERS.forEach(cfg => {
+      const el = document.createElement('div');
+      el.className = 'agent-label';
+      el.innerHTML = `
+        <span class="dot" style="color:${cfg.color};background:${cfg.color}"></span>
+        <span>${cfg.name}</span>
+        <span class="status-pill" id="pill-${cfg.id}">Đang chờ</span>
+      `;
+      el.addEventListener('click', () => selectCharacter(cfg.id));
+      labelsLayer.appendChild(el);
+      labelEls[cfg.id] = el;
+    });
+
+    const zoneTitleMap = {
+      command: 'Phòng Chủ Quản (Chị Lan)',
+      vault: 'Kho Số Liệu Gốc',
+      analytics: 'Nhóm Đối Chiếu (4 Bàn Song Song)',
+      forge: 'Bàn Lập Sổ Excel',
+      qa: 'Bàn Kiểm Tra Cuối (2 Bước)'
+    };
+    const zoneLabelEls = {};
+    Object.entries(zoneTitleMap).forEach(([id, title]) => {
+      const el = document.createElement('div');
+      el.className = 'zone-label';
+      el.textContent = title;
+      labelsLayer.appendChild(el);
+      zoneLabelEls[id] = el;
+    });
+
+    const rosterStrip = document.getElementById('roster-strip');
+    CHARACTERS.forEach(cfg => {
+      const btn = document.createElement('button');
+      btn.className = 'roster-pill';
+      btn.dataset.char = cfg.id;
+      btn.innerHTML = `<span style="width:7px;height:7px;border-radius:50%;background:${cfg.color}"></span>${cfg.shortLabel}`;
+      btn.addEventListener('click', () => {
+        selectCharacter(cfg.id);
+        flyToZone(cfg.zone);
+      });
+      rosterStrip.appendChild(btn);
+    });
+
+    let selectedCharId = 'orchestrator';
+    function selectCharacter(id) {
+      selectedCharId = id;
+      const entry = charMap[id];
+      const cfg = entry.cfg;
+
+      document.querySelectorAll('.roster-pill').forEach(p => {
+        p.classList.toggle('selected', p.dataset.char === id);
+      });
+
+      const taskItems = cfg.tasks.map(t => `<li>${t}</li>`).join('');
+      const card = document.getElementById('inspector-card');
+      card.innerHTML = `
+        <div class="char-header">
+          <div class="char-avatar" style="background:${cfg.color}">${cfg.initials}</div>
+          <div>
+            <div class="char-name">${cfg.name}</div>
+            <div class="char-sub">${cfg.role}</div>
+          </div>
+        </div>
+        <div class="tag-row">
+          <span class="tag" style="border:1px solid ${cfg.color};color:${cfg.accent}">${cfg.zoneLabel}</span>
+          <span class="tag">Hiện tại: ${entry.status}</span>
+        </div>
+        <div class="section-label">Nhiệm Vụ Chi Tiết Từng Bước</div>
+        <ol class="task-list">${taskItems}</ol>
+        <div class="section-label">Nhận Hồ Sơ Từ</div>
+        <div class="info-box">${cfg.reads}</div>
+        <div class="section-label">Kết Quả Bàn Giao</div>
+        <div class="info-box">${cfg.writes}</div>
+        <div class="section-label">Nguyên Tắc An Toàn</div>
+        <div class="info-box restrict-box">${cfg.restrictions}</div>
+      `;
+    }
+    selectCharacter('orchestrator');
+
+    let camAnim = null;
+    function flyToZone(zoneKey) {
+      const z = ZONES[zoneKey] || ZONES.overview;
+      document.querySelectorAll('.zone-btn').forEach(b => b.classList.toggle('active', b.dataset.zone === zoneKey));
+      camAnim = {
+        startPos: camera.position.clone(),
+        endPos: new THREE.Vector3(...z.cam),
+        startTarget: controls.target.clone(),
+        endTarget: new THREE.Vector3(...z.pos),
+        progress: 0
+      };
+    }
+
+    document.querySelectorAll('.zone-btn').forEach(btn => {
+      btn.addEventListener('click', () => flyToZone(btn.dataset.zone));
+    });
+
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    let downPt = { x: 0, y: 0 };
+
+    renderer.domElement.addEventListener('pointerdown', e => {
+      downPt = { x: e.clientX, y: e.clientY };
+    });
+    renderer.domElement.addEventListener('pointerup', e => {
+      const dist = Math.hypot(e.clientX - downPt.x, e.clientY - downPt.y);
+      if (dist > 6) return;
+      pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+      pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(charMeshes.map(c => c.group), true);
+      if (hits.length > 0) {
+        let obj = hits[0].object;
+        while (obj && !obj.userData.charId) obj = obj.parent;
+        if (obj?.userData?.charId) selectCharacter(obj.userData.charId);
+      }
+    });
+
+    // =========================================================
+    // 8. MÔ PHỎNG QUY TRÌNH 5 BƯỚC
+    // =========================================================
+    let currentPhase = 0;
+    let simTimer = null;
+
+    function addLog(msg, color = '#3b82f6') {
+      const list = document.getElementById('log-list');
+      const now = new Date();
+      const ts = now.toTimeString().slice(3, 8);
+      const item = document.createElement('div');
+      item.className = 'log-item';
+      item.style.borderLeftColor = color;
+      item.innerHTML = `<span class="time">${ts}</span>${msg}`;
+      list.prepend(item);
+    }
+
+    function setAgentState(id, status, working) {
+      const entry = charMap[id];
+      if (!entry) return;
+      entry.status = status;
+      entry.working = working;
+      const pill = document.getElementById(`pill-${id}`);
+      const label = labelEls[id];
+      if (pill) pill.textContent = status;
+      if (label) label.classList.toggle('active-working', working);
+      if (selectedCharId === id) selectCharacter(id);
+    }
+
+    function updateGates(passed) {
+      document.getElementById('gates-count').textContent = `${passed}/11`;
+      document.getElementById('gates-fill').style.width = `${(passed / 11) * 100}%`;
+    }
+
+    function runPhase(phase) {
+      currentPhase = phase;
+      document.querySelectorAll('.phase-chip').forEach(ch => {
+        const p = Number(ch.dataset.phase);
+        ch.classList.toggle('active', p === phase);
+        ch.classList.toggle('done', p < phase);
+      });
+
+      if (phase === 1) {
+        document.getElementById('sim-state-text').textContent = 'BƯỚC 1: LẤY SỐ LIỆU';
+        setAgentState('orchestrator', 'Đang giao việc', true);
+        setAgentState('data-extractor', 'Đang trích xuất', true);
+        spawnPacket('vault->command', 3);
+        updateGates(2);
+        addLog('<b>Bước 1 (Lấy số liệu gốc):</b> Chị Lan chốt ngày đối chiếu. Bộ phận <b>Trích Xuất Số Liệu SQL</b> lấy dữ liệu 1 lần chế độ chỉ đọc và khóa niêm phong.', '#06b6d4');
+      } else if (phase === 2) {
+        document.getElementById('sim-state-text').textContent = 'BƯỚC 2: ĐỐI CHIẾU 4 MẢNG';
+        setAgentState('data-extractor', 'Đã niêm phong', false);
+        ['export-analyst', 'import-analyst', 'usage-analyst', 'tax-analyst'].forEach(id => {
+          setAgentState(id, 'Đang đối chiếu', true);
+        });
+        spawnPacket('command->analytics', 4);
+        updateGates(5);
+        addLog('<b>Bước 2 (Kiểm tra 4 mảng):</b> 4 nhiệm vụ <b>Xuất Khẩu, Nhập Khẩu, Định Mức NPL, Thuế & NPL</b> chạy song song trên bản sao số liệu sạch.', '#10b981');
+      } else if (phase === 3) {
+        document.getElementById('sim-state-text').textContent = 'BƯỚC 3: LẬP SỔ EXCEL';
+        ['export-analyst', 'import-analyst', 'usage-analyst', 'tax-analyst'].forEach(id => {
+          setAgentState(id, 'Đã nộp bảng', false);
+        });
+        setAgentState('workbook-builder', 'Đang dựng 7 trang', true);
+        spawnPacket('analytics->forge', 4);
+        updateGates(8);
+        addLog('<b>Bước 3 (Lập sổ Excel):</b> Bộ phận <b>Lập Sổ Excel 7 Trang</b> tổng hợp thành 1 file song ngữ Việt - Hoa với toàn bộ công thức tự động.', '#8b5cf6');
+      } else if (phase === 4) {
+        document.getElementById('sim-state-text').textContent = 'BƯỚC 4: KIỂM TRA CHÉO';
+        setAgentState('workbook-builder', 'Đã đóng bản nháp', false);
+        setAgentState('logic-qa', 'Soát công thức', true);
+        setAgentState('visual-qa', 'Soát trình bày', true);
+        spawnPacket('forge->qa', 3);
+        updateGates(10);
+        addLog('<b>Bước 4 (Kiểm tra chéo):</b> Hai bàn <b>Kiểm Định Số Liệu</b> và <b>Kiểm Định Trình Bày</b> rà soát độc lập công thức, tiền thuế và bố cục 7 trang.', '#ec4899');
+      } else if (phase === 5) {
+        document.getElementById('sim-state-text').textContent = 'HOÀN THÀNH (11/11)';
+        setAgentState('logic-qa', 'Đạt chuẩn', false);
+        setAgentState('visual-qa', 'Đạt chuẩn', false);
+        setAgentState('orchestrator', 'Đã ký duyệt', false);
+        spawnPacket('qa->command', 4);
+        updateGates(11);
+        document.querySelectorAll('.phase-chip').forEach(ch => ch.classList.add('done'));
+        addLog('<b>Bước 5 (Bàn giao):</b> Đạt đủ 11/11 tiêu chuẩn! Chị Lan ký duyệt và xuất file Excel báo cáo chính thức.', '#10b981');
+      }
+    }
+
+    function resetSim() {
+      if (simTimer) { clearInterval(simTimer); simTimer = null; }
+      currentPhase = 0;
+      document.getElementById('sim-state-text').textContent = 'CHỜ LỆNH';
+      document.querySelectorAll('.phase-chip').forEach(ch => ch.classList.remove('active', 'done'));
+      CHARACTERS.forEach(c => setAgentState(c.id, 'Đang chờ', false));
+      updateGates(0);
+      addLog('Đã đặt lại quy trình về trạng thái ban đầu.', '#94a3b8');
+    }
+
+    document.getElementById('btn-step').addEventListener('click', () => {
+      if (currentPhase >= 5) resetSim();
+      runPhase(currentPhase + 1);
+    });
+
+    document.getElementById('btn-simulate').addEventListener('click', () => {
+      resetSim();
+      runPhase(1);
+      simTimer = setInterval(() => {
+        if (currentPhase >= 5) { clearInterval(simTimer); simTimer = null; return; }
+        runPhase(currentPhase + 1);
+      }, 2800);
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', resetSim);
+
+    const btnTheme = document.getElementById('btn-theme');
+    btnTheme.addEventListener('click', () => {
+      isNightMode = !isNightMode;
+      btnTheme.textContent = isNightMode ? '☀ Ngày' : '🌙 Đêm';
+      document.body.style.background = isNightMode
+        ? 'radial-gradient(circle at 50% 35%, #1e293b 0%, #0b1020 75%)'
+        : 'radial-gradient(circle at 50% 30%, #e0f2fe 0%, #bae6fd 45%, #60a5fa 100%)';
+      hemiLight.intensity = isNightMode ? 0.65 : 1.25;
+      dirLight.intensity = isNightMode ? 1.05 : 1.65;
+      ceilingLights.forEach(l => {
+        l.material.emissiveIntensity = isNightMode ? 1.3 : 0.65;
+      });
+    });
+
+    // =========================================================
+    // 9. VÒNG LẶP RENDER 3D
+    // =========================================================
+    const clock = new THREE.Clock();
+    const tmpVec = new THREE.Vector3();
+
+    function projectToScreen(vec3) {
+      tmpVec.copy(vec3).project(camera);
+      return {
+        x: (tmpVec.x * 0.5 + 0.5) * window.innerWidth,
+        y: (-tmpVec.y * 0.5 + 0.5) * window.innerHeight,
+        visible: tmpVec.z < 1
+      };
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = clock.getDelta();
+      const t = clock.elapsedTime;
+
+      if (camAnim) {
+        camAnim.progress = Math.min(1, camAnim.progress + dt * 2.4);
+        const ease = 1 - Math.pow(1 - camAnim.progress, 3);
+        camera.position.lerpVectors(camAnim.startPos, camAnim.endPos, ease);
+        controls.target.lerpVectors(camAnim.startTarget, camAnim.endTarget, ease);
+        if (camAnim.progress >= 1) camAnim = null;
+      }
+
+      controls.update();
+
+      charMeshes.forEach(c => {
+        const speed = c.working ? 6.0 : 1.8;
+        const amp = c.working ? 0.08 : 0.02;
+        c.bodyGroup.position.y = Math.abs(Math.sin(t * speed + c.phaseOffset)) * amp;
+        c.leftArm.rotation.x = c.working ? Math.sin(t * 10 + c.phaseOffset) * 0.35 : 0;
+        c.rightArm.rotation.x = c.working ? -Math.sin(t * 10 + c.phaseOffset) * 0.35 : 0;
+        c.gem.rotation.y += dt * (c.working ? 3.5 : 1.2);
+        c.ring.material.opacity = c.working ? 0.85 : (c.cfg.id === selectedCharId ? 0.8 : 0.3);
+
+        const headWorld = new THREE.Vector3(c.cfg.pos[0], c.cfg.pos[1] + 2.0, c.cfg.pos[2]);
+        const p = projectToScreen(headWorld);
+        const el = labelEls[c.cfg.id];
+        if (el) {
+          el.style.left = `${p.x}px`;
+          el.style.top = `${p.y}px`;
+          el.style.opacity = p.visible ? '1' : '0';
+        }
+      });
+
+      Object.entries(zoneLabelEls).forEach(([id, el]) => {
+        const zp = zonePads[id];
+        const p = projectToScreen(new THREE.Vector3(zp.x, zp.h + 0.12, zp.z + 1.85));
+        el.style.left = `${p.x}px`;
+        el.style.top = `${p.y}px`;
+        el.style.opacity = p.visible ? '0.95' : '0';
+      });
+
+      for (let i = activePackets.length - 1; i >= 0; i--) {
+        const pkt = activePackets[i];
+        pkt.t += dt * pkt.speed;
+        if (pkt.t >= 1) {
+          worldGroup.remove(pkt.mesh);
+          activePackets.splice(i, 1);
+        } else if (pkt.t >= 0) {
+          pkt.mesh.visible = true;
+          pkt.curve.getPoint(pkt.t, pkt.mesh.position);
+          pkt.mesh.rotation.x += dt * 4;
+          pkt.mesh.rotation.y += dt * 4;
+        } else {
+          pkt.mesh.visible = false;
+        }
+      }
+
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
