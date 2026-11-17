@@ -392,6 +392,7 @@
       <button class="btn" id="btn-history" style="border-color:#f59e0b;color:#fde68a">📜 14 Giai Đoạn</button>
       <button class="btn" id="btn-batches" style="border-color:#06b6d4;color:#a5f3fc">📋 156 Batches</button>
       <button class="btn" id="btn-step">Bước</button>
+      <button class="btn" id="btn-roam" style="border-color:#10b981;color:#6ee7b7">🚶 Đi Lại</button>
       <button class="btn" id="btn-lang">🌐 VI+中</button>
       <button class="btn" id="btn-theme">🌙 Đêm</button>
       <button class="btn" id="btn-reset">↺</button>
@@ -1328,24 +1329,44 @@
       const bodyGroup = new THREE.Group();
       group.add(bodyGroup);
 
-      [-0.1, 0.1].forEach(lx => {
-        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.4, 0.16), flatMat(0x1e293b));
-        leg.position.set(lx, 0.26, 0);
-        leg.castShadow = true;
-        bodyGroup.add(leg);
-        // Giày công sở
-        const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.08, 0.22), flatMat(0x0f172a));
-        shoe.position.set(lx, 0.05, 0.03);
-        bodyGroup.add(shoe);
-      });
+      // Chân có khớp hông để bước đi tự nhiên
+      const leftLeg = new THREE.Group();
+      leftLeg.position.set(-0.1, 0.44, 0);
+      const lLegMesh = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.38, 0.16), flatMat(0x1e293b));
+      lLegMesh.position.y = -0.19;
+      lLegMesh.castShadow = true;
+      leftLeg.add(lLegMesh);
+      const lShoe = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.08, 0.22), flatMat(0x0f172a));
+      lShoe.position.set(0, -0.4, 0.03);
+      leftLeg.add(lShoe);
+      bodyGroup.add(leftLeg);
 
+      const rightLeg = new THREE.Group();
+      rightLeg.position.set(0.1, 0.44, 0);
+      const rLegMesh = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.38, 0.16), flatMat(0x1e293b));
+      rLegMesh.position.y = -0.19;
+      rLegMesh.castShadow = true;
+      rightLeg.add(rLegMesh);
+      const rShoe = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.08, 0.22), flatMat(0x0f172a));
+      rShoe.position.set(0, -0.4, 0.03);
+      rightLeg.add(rShoe);
+      bodyGroup.add(rightLeg);
+
+      // Thân áo vest công sở + thắt lưng + ve áo
       const torso = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.5, 0.24), flatMat(cMain));
       torso.position.y = 0.7;
       torso.castShadow = true;
       bodyGroup.add(torso);
 
-      const collar = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.09, 0.25), flatMat(0xffffff));
-      collar.position.set(0, 0.92, 0.01);
+      const belt = new THREE.Mesh(new THREE.BoxGeometry(0.43, 0.055, 0.25), flatMat(0x0f172a));
+      belt.position.y = 0.47;
+      bodyGroup.add(belt);
+      const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.05, 0.03), flatMat(0xfbbf24));
+      buckle.position.set(0, 0.47, 0.125);
+      bodyGroup.add(buckle);
+
+      const collar = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.12, 0.25), flatMat(0xffffff));
+      collar.position.set(0, 0.9, 0.01);
       bodyGroup.add(collar);
 
       // Thẻ nhân viên đeo trước ngực
@@ -1353,27 +1374,44 @@
       badge.position.set(0.11, 0.75, 0.13);
       bodyGroup.add(badge);
 
-      // Tay áo + bàn tay màu da
+      // Tay áo có cổ tay trắng + bàn tay màu da + phụ kiện cầm tay theo vai trò
       const leftArm = new THREE.Group();
       leftArm.position.set(-0.29, 0.88, 0.02);
-      const lSleeve = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.34, 0.13), flatMat(cMain));
-      lSleeve.position.y = -0.15;
+      const lSleeve = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.31, 0.13), flatMat(cMain));
+      lSleeve.position.y = -0.14;
       lSleeve.castShadow = true;
       leftArm.add(lSleeve);
+      const lCuff = new THREE.Mesh(new THREE.BoxGeometry(0.125, 0.05, 0.135), flatMat(0xffffff));
+      lCuff.position.y = -0.3;
+      leftArm.add(lCuff);
       const lHand = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), flatMat(0xfde68a));
-      lHand.position.y = -0.35;
+      lHand.position.y = -0.36;
       leftArm.add(lHand);
       bodyGroup.add(leftArm);
 
       const rightArm = new THREE.Group();
       rightArm.position.set(0.29, 0.88, 0.02);
-      const rSleeve = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.34, 0.13), flatMat(cMain));
-      rSleeve.position.y = -0.15;
+      const rSleeve = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.31, 0.13), flatMat(cMain));
+      rSleeve.position.y = -0.14;
       rSleeve.castShadow = true;
       rightArm.add(rSleeve);
+      const rCuff = new THREE.Mesh(new THREE.BoxGeometry(0.125, 0.05, 0.135), flatMat(0xffffff));
+      rCuff.position.y = -0.3;
+      rightArm.add(rCuff);
       const rHand = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), flatMat(0xfde68a));
-      rHand.position.y = -0.35;
+      rHand.position.y = -0.36;
       rightArm.add(rHand);
+
+      // Phụ kiện cầm tay đặc trưng từng vị trí
+      if (cfg.id === 'orchestrator' || cfg.id === 'logic-qa' || cfg.id === 'visual-qa') {
+        const clipboard = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.03, 0.28), flatMat(cfg.id === 'orchestrator' ? 0x92400e : 0x0284c7));
+        clipboard.position.set(0, -0.38, 0.12);
+        rightArm.add(clipboard);
+      } else if (cfg.id === 'dcs-xnt-builder' || cfg.id === 'workbook-builder') {
+        const tablet = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.025, 0.18), flatMat(0x1e293b, { emissive: 0x38bdf8, emissiveIntensity: 0.3 }));
+        tablet.position.set(0, -0.38, 0.11);
+        rightArm.add(tablet);
+      }
       bodyGroup.add(rightArm);
 
       const head = new THREE.Mesh(new THREE.IcosahedronGeometry(0.22, 1), flatMat(0xfde68a));
@@ -1381,12 +1419,22 @@
       head.castShadow = true;
       bodyGroup.add(head);
 
-      // Hai mắt nhỏ
+      // Hai mắt & lông mày
       [-0.07, 0.07].forEach(ex => {
         const eye = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.035, 0.03), flatMat(0x0f172a));
         eye.position.set(ex, 1.19, 0.21);
         bodyGroup.add(eye);
+        const brow = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.015, 0.02), flatMat(cfg.hairColor));
+        brow.position.set(ex, 1.23, 0.21);
+        bodyGroup.add(brow);
       });
+
+      // Tai nghe kỹ thuật cho Kho SQL
+      if (cfg.id === 'data-extractor') {
+        const band = new THREE.Mesh(new THREE.TorusGeometry(0.23, 0.02, 6, 12, Math.PI), flatMat(0x06b6d4));
+        band.position.y = 1.22;
+        bodyGroup.add(band);
+      }
 
       // Kính mắt cho Quản lý, Thuế & Kiểm định
       if (['orchestrator', 'tax-analyst', 'logic-qa'].includes(cfg.id)) {
@@ -1419,7 +1467,11 @@
 
       worldGroup.add(group);
       const entry = {
-        cfg, group, bodyGroup, ring, gem, leftArm, rightArm,
+        cfg, group, bodyGroup, ring, gem, leftArm, rightArm, leftLeg, rightLeg,
+        homePos: new THREE.Vector3(cfg.pos[0], cfg.pos[1], cfg.pos[2]),
+        targetPos: new THREE.Vector3(cfg.pos[0], cfg.pos[1], cfg.pos[2]),
+        walkPause: Math.random() * 2.5,
+        isMoving: false,
         status: 'Đang chờ',
         working: false,
         phaseOffset: Math.random() * Math.PI * 2
@@ -2069,9 +2121,32 @@
       };
     }
 
+    // Các điểm đi lại tự do trong hành lang & khu vực chung văn phòng
+    let freeRoamEnabled = true;
+    const OFFICE_WAYPOINTS = [
+      [-4.2, 0.08, -0.4],
+      [-1.0, 0.08, -0.8],
+      [0.4,  0.08, -1.8],
+      [4.5,  0.08, -0.6],
+      [-6.8, 0.08, -4.8], // Quầy Pantry cà phê
+      [-4.6, 0.08, -4.8], // Khu Sofa tiếp khách
+      [-8.2, 0.08,  1.2], // Tủ hồ sơ chứng từ
+      [4.8,  0.08,  4.4], // Giá treo áo mẫu
+      [-2.5, 0.08,  0.6], // Hành lang trung tâm
+      [5.5,  0.08,  1.8]  // Lối đi khu Excel / DCS_XNT
+    ];
+
+    const btnRoam = document.getElementById('btn-roam');
+    btnRoam.addEventListener('click', () => {
+      freeRoamEnabled = !freeRoamEnabled;
+      btnRoam.textContent = freeRoamEnabled ? '🚶 Đi Lại' : '🧍 Đứng Yên';
+      btnRoam.style.borderColor = freeRoamEnabled ? '#10b981' : '#64748b';
+      btnRoam.style.color = freeRoamEnabled ? '#6ee7b7' : '#cbd5e1';
+    });
+
     function animate() {
       requestAnimationFrame(animate);
-      const dt = clock.getDelta();
+      const dt = Math.min(clock.getDelta(), 0.05);
       const t = clock.elapsedTime;
 
       if (camAnim) {
@@ -2085,15 +2160,69 @@
       controls.update();
 
       charMeshes.forEach(c => {
-        const speed = c.working ? 6.0 : 1.8;
-        const amp = c.working ? 0.08 : 0.02;
-        c.bodyGroup.position.y = Math.abs(Math.sin(t * speed + c.phaseOffset)) * amp;
-        c.leftArm.rotation.x = c.working ? Math.sin(t * 10 + c.phaseOffset) * 0.35 : 0;
-        c.rightArm.rotation.x = c.working ? -Math.sin(t * 10 + c.phaseOffset) * 0.35 : 0;
+        // Khi đang làm việc (hoặc tắt đi lại) -> quay về bàn làm việc; khi rảnh -> tự do đi dạo văn phòng
+        if (c.working || !freeRoamEnabled) {
+          c.targetPos.copy(c.homePos);
+        } else {
+          const distToTarget = c.group.position.distanceTo(c.targetPos);
+          if (distToTarget < 0.12) {
+            c.walkPause -= dt;
+            if (c.walkPause <= 0) {
+              c.walkPause = 2.2 + Math.random() * 3.5;
+              if (Math.random() < 0.35) {
+                c.targetPos.copy(c.homePos);
+              } else {
+                const wp = OFFICE_WAYPOINTS[Math.floor(Math.random() * OFFICE_WAYPOINTS.length)];
+                c.targetPos.set(wp[0] + (Math.random() - 0.5) * 0.7, wp[1], wp[2] + (Math.random() - 0.5) * 0.7);
+              }
+            }
+          }
+        }
+
+        const dx = c.targetPos.x - c.group.position.x;
+        const dz = c.targetPos.z - c.group.position.z;
+        const dist = Math.hypot(dx, dz);
+        c.isMoving = dist > 0.08;
+
+        if (c.isMoving) {
+          const step = Math.min(dist, (c.working ? 3.2 : 1.35) * dt);
+          c.group.position.x += (dx / dist) * step;
+          c.group.position.z += (dz / dist) * step;
+          c.group.position.y += (c.targetPos.y - c.group.position.y) * Math.min(1, dt * 6);
+          const targetAngle = Math.atan2(dx, dz);
+          let diff = targetAngle - c.group.rotation.y;
+          while (diff > Math.PI) diff -= Math.PI * 2;
+          while (diff < -Math.PI) diff += Math.PI * 2;
+          c.group.rotation.y += diff * Math.min(1, dt * 8);
+
+          // Hoạt ảnh bước đi (tay chân vung ngược chiều nhau)
+          const walkSwing = Math.sin(t * 9.5 + c.phaseOffset) * 0.55;
+          c.leftLeg.rotation.x = walkSwing;
+          c.rightLeg.rotation.x = -walkSwing;
+          c.leftArm.rotation.x = -walkSwing * 0.75;
+          c.rightArm.rotation.x = walkSwing * 0.75;
+          c.bodyGroup.position.y = Math.abs(Math.sin(t * 9.5 + c.phaseOffset)) * 0.05;
+        } else {
+          // Đứng tại chỗ hoặc ngồi gõ máy tại bàn
+          c.leftLeg.rotation.x *= 0.85;
+          c.rightLeg.rotation.x *= 0.85;
+          if (c.group.position.distanceTo(c.homePos) < 0.25) {
+            let diff = c.cfg.facing - c.group.rotation.y;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            c.group.rotation.y += diff * Math.min(1, dt * 6);
+          }
+          const speed = c.working ? 6.0 : 1.8;
+          const amp = c.working ? 0.06 : 0.015;
+          c.bodyGroup.position.y = Math.abs(Math.sin(t * speed + c.phaseOffset)) * amp;
+          c.leftArm.rotation.x = c.working ? Math.sin(t * 10 + c.phaseOffset) * 0.35 : 0;
+          c.rightArm.rotation.x = c.working ? -Math.sin(t * 10 + c.phaseOffset) * 0.35 : 0;
+        }
+
         c.gem.rotation.y += dt * (c.working ? 3.5 : 1.2);
         c.ring.material.opacity = c.working ? 0.85 : (c.cfg.id === selectedCharId ? 0.8 : 0.3);
 
-        const headWorld = new THREE.Vector3(c.cfg.pos[0], c.cfg.pos[1] + 2.0, c.cfg.pos[2]);
+        const headWorld = new THREE.Vector3(c.group.position.x, c.group.position.y + 2.0, c.group.position.z);
         const p = projectToScreen(headWorld);
         const el = labelEls[c.cfg.id];
         if (el) {
@@ -2102,14 +2231,14 @@
           el.style.opacity = p.visible ? '1' : '0';
         }
 
-        // Cập nhật vị trí bong bóng hội thoại phía trên nhãn nhân vật
+        // Cập nhật vị trí bong bóng hội thoại phía trên nhãn nhân vật đang di chuyển
         const bubble = activeBubbles[c.cfg.id];
         if (bubble) {
           if (performance.now() > bubble.expiresAt) {
             bubble.el.remove();
             delete activeBubbles[c.cfg.id];
           } else {
-            const bPos = projectToScreen(new THREE.Vector3(c.cfg.pos[0], c.cfg.pos[1] + 2.55, c.cfg.pos[2]));
+            const bPos = projectToScreen(new THREE.Vector3(c.group.position.x, c.group.position.y + 2.55, c.group.position.z));
             bubble.el.style.left = `${bPos.x}px`;
             bubble.el.style.top = `${bPos.y - 26}px`;
             bubble.el.style.opacity = bPos.visible ? '1' : '0';
