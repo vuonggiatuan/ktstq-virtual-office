@@ -1729,6 +1729,7 @@
       rosterStrip.appendChild(btn);
     });
 
+    let langMode = 'bilingual'; // 'bilingual' | 'vi' | 'zh'
     let selectedCharId = 'orchestrator';
     function selectCharacter(id) {
       selectedCharId = id;
@@ -1814,7 +1815,6 @@
     let historyIdx = 0;
     let batchIdx = 0;
     let batchData = null;
-    let langMode = 'bilingual'; // 'bilingual' | 'vi' | 'zh'
 
     const HISTORY_SCENARIO = [
       {
