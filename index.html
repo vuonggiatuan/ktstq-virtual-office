@@ -1725,7 +1725,6 @@
 
     function runBatchStep(idx) {
       if (!batchData || idx >= batchData.length) return;
-      batchIdx = idx;
       const item = batchData[idx];
       clearAllBubbles();
       document.getElementById('sim-state-text').textContent = `BATCH ${item.b} (${idx + 1}/${batchData.length})`;
@@ -1746,7 +1745,7 @@
       spawnPacket(item.route, 2);
       updateGates(Math.min(11, Math.max(1, Math.round(((idx + 1) / batchData.length) * 11))));
 
-      const payload = `${item.tbl} (${item.rc} dòng)`;
+      const payload = item.rc && item.rc !== '-' ? `${item.tbl} (${item.rc} dòng)` : item.tbl;
       showSpeech(item.agent, item.tag, item.vi, item.zh, payload, 0, 1400);
 
       let logHtml = '';
