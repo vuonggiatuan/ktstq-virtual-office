@@ -331,12 +331,14 @@
 
     <div class="hud-card hud-actions">
       <div class="gates-badge" title="Số bước kiểm tra chất lượng đã đạt">
-        <span>Tiêu chuẩn</span>
+        <span id="lbl-gates">Tiêu chuẩn</span>
         <div class="gates-bar"><div class="gates-fill" id="gates-fill"></div></div>
         <span id="gates-count">0/11</span>
       </div>
-      <button class="btn btn-primary" id="btn-simulate">▶ Xem Quy Trình</button>
+      <button class="btn btn-primary" id="btn-simulate">▶ Quy Trình 5 Bước</button>
+      <button class="btn" id="btn-history" style="border-color:#f59e0b;color:#fde68a">📜 Lịch Sử Dự Án (VI/繁中)</button>
       <button class="btn" id="btn-step">Từng Bước</button>
+      <button class="btn" id="btn-lang">🌐 VI+繁中</button>
       <button class="btn" id="btn-theme">🌙 Đêm</button>
       <button class="btn" id="btn-reset">↺ Làm Lại</button>
     </div>
@@ -402,10 +404,12 @@
       {
         id: 'orchestrator',
         name: 'Chị Lan — Chủ Quản Điều Hành',
+        nameZh: '蘭姐 — 總管協調 (Orchestrator)',
         shortLabel: 'Chị Lan (Chủ Quản)',
         role: 'Điều phối toàn bộ quy trình & ký duyệt cuối',
+        roleZh: '統籌整體流程與最終簽核發布',
         zone: 'command',
-        zoneLabel: 'Phòng Chủ Quản',
+        zoneLabel: 'Phòng Chủ Quản | 主管室',
         color: '#6366f1',
         accent: '#a5b4fc',
         initials: 'CQL',
@@ -1337,10 +1341,84 @@
     });
 
     // =========================================================
-    // 8. MÔ PHỎNG QUY TRÌNH 5 BƯỚC
+    // 8. MÔ PHỎNG QUY TRÌNH 5 BƯỚC & KỊCH BẢN LỊCH SỬ DỰ ÁN (VI / 繁中)
     // =========================================================
     let currentPhase = 0;
     let simTimer = null;
+    let langMode = 'bilingual'; // 'bilingual' | 'vi' | 'zh'
+
+    const HISTORY_SCENARIO = [
+      {
+        stage: '1/7 • 07/2023 – 09/2026',
+        phase: 1,
+        gates: 2,
+        route: 'vault->command',
+        active: ['orchestrator', 'data-extractor'],
+        done: [],
+        vi: '<b>Giai đoạn 1 — Khóa phạm vi & Nguồn gốc:</b> Chị Lan chốt phạm vi kiểm toán 01/07/2023–30/09/2026. Bộ phận SQL khóa snapshot 11.962 dòng tờ khai & 255.346 dòng nhập kho (Read-Only, tuyệt đối không sửa ECUS5VNACCS).',
+        zh: '<b>階段 1 — 鎖定查核範圍與原始資料：</b> 蘭姐確認查核區間 2023/07/01–2026/09/30。SQL 取數組以唯讀模式凍結 11,962 筆報單與 255,346 筆入庫資料（絕不修改 ECUS5VNACCS）。'
+      },
+      {
+        stage: '2/7 • ĐVT, Khổ & Đổi mã',
+        phase: 2,
+        gates: 4,
+        route: 'command->analytics',
+        active: ['import-analyst', 'usage-analyst'],
+        done: ['data-extractor'],
+        vi: '<b>Giai đoạn 2 — Tách Đơn vị tính & Đổi mã:</b> Phát hiện 7 nhóm tờ khai đa đơn vị (MET/YD/KG) và 273 dòng phiếu đổi mã ảnh hưởng 818 dòng luân chuyển. Tách khổ từng dòng, giữ nguyên các dòng thiếu cơ sở.',
+        zh: '<b>階段 2 — 拆解計量單位與料號變更：</b> 盤點出 7 組多單位報單（MET/YD/KG）及 273 筆換碼異動（影響 818 筆流水）。改採逐筆幅寬換算，缺乏依據者保留不推估。'
+      },
+      {
+        stage: '3/7 • Đơn hàng & Định mức',
+        phase: 2,
+        gates: 6,
+        route: 'command->analytics',
+        active: ['export-analyst', 'usage-analyst'],
+        done: ['data-extractor', 'import-analyst'],
+        vi: '<b>Giai đoạn 3 — Truy vết Đơn hàng & Định mức:</b> Truy vết đơn SF2604036-A (6 tờ khai E52, 6.338 PCE), tách 75 dòng OUT (SBKAI3-M), kiểm 6 file XLS (3.775 dòng), bỏ kiểu lấy định mức dòng đầu tiên.',
+        zh: '<b>階段 3 — 訂單與實際單耗追溯：</b> 追蹤 SF2604036-A（6 份 E52 報單、6,338 PCE），解析 75 筆 OUT（SBKAI3-M）並核對 6 份 XLS（3,775 筆），禁用舊版首筆單耗預設邏輯。'
+      },
+      {
+        stage: '4/7 • Tồn đầu 2023 & BCQT',
+        phase: 3,
+        gates: 7,
+        route: 'analytics->forge',
+        active: ['workbook-builder', 'export-analyst'],
+        done: ['data-extractor', 'import-analyst', 'usage-analyst'],
+        vi: '<b>Giai đoạn 4 — Cầu nối Tồn đầu 2023 & BCQT:</b> Dựng cầu nối 2023–2026 (143 khóa năm, 83 khóa tháng 6). Tách bạch BCQT đã nộp, BCQT tính lại & tồn kho thực tế; bản run11 đạt 0 chênh chuyển năm trên khóa ghép được.',
+        zh: '<b>階段 4 — 2023 期初餘額與 BCQT 年結橋接：</b> 建立 2023–2026 年結橋接（143 組年度鍵值、83 組六月鍵值），嚴格區分已申報與重算 BCQT，run11 可配對鍵值跨年差異為 0。'
+      },
+      {
+        stage: '5/7 • Thuế NPL & Pháp lý',
+        phase: 3,
+        gates: 8,
+        route: 'analytics->forge',
+        active: ['tax-analyst', 'workbook-builder'],
+        done: ['data-extractor', 'import-analyst', 'usage-analyst', 'export-analyst'],
+        vi: '<b>Giai đoạn 5 — Thuế NPL & Mốc Pháp lý:</b> Tính lại thuế 10% (ECUS_TaxCaculate), gắn cờ "Mâu thuẫn thuế suất | 稅率衝突" khi có 2 thuế suất, phân tuyến mốc Luật 90/2025, NĐ 167/2025, TT 121/2025.',
+        zh: '<b>階段 5 — NPL 稅差與法規時效分流：</b> 依 ECUS_TaxCaculate 重算 10% 稅差，雙稅率標記「稅率衝突」，並區分第 90/2025 號法、167/2025 號議定與 121/2025 號通告生效日。'
+      },
+      {
+        stage: '6/7 • Chứng từ Scan & Vận tải',
+        phase: 4,
+        gates: 10,
+        route: 'forge->qa',
+        active: ['logic-qa', 'visual-qa'],
+        done: ['workbook-builder', 'tax-analyst'],
+        vi: '<b>Giai đoạn 6 — Đối chiếu Chứng từ Scan thực tế:</b> Kiểm tra 7 trang PDF scan 25102026: khớp 2 header E52 (308849150910, 308849504260) & hóa đơn vận tải 111 (7.462.800 VND trên CN2608104 & DV2608105).',
+        zh: '<b>階段 6 — 實體掃描單證與運費核對：</b> 比對 7 頁掃描 PDF：兩筆 E52 報單（308849150910、308849504260）與運費發票 111（7,462,800 VND 對應 CN2608104 / DV2608105）完全吻合。'
+      },
+      {
+        stage: '7/7 • Kiểm toán 49/49 Tests',
+        phase: 5,
+        gates: 11,
+        route: 'qa->command',
+        active: [],
+        done: ['orchestrator', 'logic-qa', 'visual-qa'],
+        vi: '<b>Giai đoạn 7 — Hoàn tất & Kiểm chứng (49/49 Tests):</b> Chạy verify_ktstq.py đạt 49/49 bài kiểm thử, 140 mã hash nguồn/đầu ra nguyên vẹn, đồng bộ 3 bộ skill & Văn phòng ảo. Chị Lan ký tổng hợp hồ sơ!',
+        zh: '<b>階段 7 — 結案驗證（49/49 項測試通過）：</b> 執行 verify_ktstq.py 通過 49/49 項測試、140 筆雜湊值零異動，並完成 3 套 Skill 與 3D 虛擬辦公室同步，蘭姐簽核備查！'
+      }
+    ];
 
     function addLog(msg, color = '#3b82f6') {
       const list = document.getElementById('log-list');
@@ -1370,6 +1448,30 @@
       document.getElementById('gates-fill').style.width = `${(passed / 11) * 100}%`;
     }
 
+    function runHistoryStep(idx) {
+      const step = HISTORY_SCENARIO[idx];
+      if (!step) return;
+      document.getElementById('sim-state-text').textContent = step.stage;
+      document.querySelectorAll('.phase-chip').forEach(ch => {
+        const p = Number(ch.dataset.phase);
+        ch.classList.toggle('active', p === step.phase);
+        ch.classList.toggle('done', p < step.phase || (step.phase === 5 && p === 5));
+      });
+      CHARACTERS.forEach(c => {
+        if (step.active.includes(c.id)) setAgentState(c.id, langMode === 'zh' ? '執行中' : 'Đang xử lý', true);
+        else if (step.done.includes(c.id)) setAgentState(c.id, langMode === 'zh' ? '已完成' : 'Hoàn tất', false);
+        else setAgentState(c.id, langMode === 'zh' ? '待命中' : 'Đang chờ', false);
+      });
+      spawnPacket(step.route, 4);
+      updateGates(step.gates);
+
+      let text = '';
+      if (langMode === 'vi') text = step.vi;
+      else if (langMode === 'zh') text = step.zh;
+      else text = `${step.vi}<div style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(148,163,184,0.3);color:#fde68a">${step.zh}</div>`;
+      addLog(text, step.phase === 5 ? '#10b981' : '#f59e0b');
+    }
+
     function runPhase(phase) {
       currentPhase = phase;
       document.querySelectorAll('.phase-chip').forEach(ch => {
@@ -1384,7 +1486,7 @@
         setAgentState('data-extractor', 'Đang trích xuất', true);
         spawnPacket('vault->command', 3);
         updateGates(2);
-        addLog('<b>Bước 1 (Lấy số liệu gốc):</b> Chị Lan chốt ngày đối chiếu. Bộ phận <b>Trích Xuất Số Liệu SQL</b> lấy dữ liệu 1 lần chế độ chỉ đọc và khóa niêm phong.', '#06b6d4');
+        addLog('<b>Bước 1 (Lấy số liệu gốc):</b> Chị Lan chốt ngày đối chiếu. Bộ phận <b>Trích Xuất Số Liệu SQL</b> lấy dữ liệu 1 lần chế độ chỉ đọc và khóa niêm phong.<div style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(148,163,184,0.3);color:#fde68a"><b>步驟 1（唯讀取數）：</b> 蘭姐確認對帳日期，SQL 取數組一次性唯讀匯出並建立雜湊封存。</div>', '#06b6d4');
       } else if (phase === 2) {
         document.getElementById('sim-state-text').textContent = 'BƯỚC 2: ĐỐI CHIẾU 4 MẢNG';
         setAgentState('data-extractor', 'Đã niêm phong', false);
@@ -1393,7 +1495,7 @@
         });
         spawnPacket('command->analytics', 4);
         updateGates(5);
-        addLog('<b>Bước 2 (Kiểm tra 4 mảng):</b> 4 nhiệm vụ <b>Xuất Khẩu, Nhập Khẩu, Định Mức NPL, Thuế & NPL</b> chạy song song trên bản sao số liệu sạch.', '#10b981');
+        addLog('<b>Bước 2 (Kiểm tra 4 mảng):</b> 4 nhiệm vụ <b>Xuất Khẩu, Nhập Khẩu, Định Mức NPL, Thuế & NPL</b> chạy song song trên bản sao số liệu sạch.<div style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(148,163,184,0.3);color:#fde68a"><b>步驟 2（四大領域並行分析）：</b> 出口、進口、單耗與稅務/NPL 四組同步進行稽核比對。</div>', '#10b981');
       } else if (phase === 3) {
         document.getElementById('sim-state-text').textContent = 'BƯỚC 3: LẬP SỔ EXCEL';
         ['export-analyst', 'import-analyst', 'usage-analyst', 'tax-analyst'].forEach(id => {
@@ -1402,7 +1504,7 @@
         setAgentState('workbook-builder', 'Đang dựng 7 trang', true);
         spawnPacket('analytics->forge', 4);
         updateGates(8);
-        addLog('<b>Bước 3 (Lập sổ Excel):</b> Bộ phận <b>Lập Sổ Excel 7 Trang</b> tổng hợp thành 1 file song ngữ Việt - Hoa với toàn bộ công thức tự động.', '#8b5cf6');
+        addLog('<b>Bước 3 (Lập sổ Excel):</b> Bộ phận <b>Lập Sổ Excel 7 Trang</b> tổng hợp thành 1 file song ngữ Việt - Hoa với toàn bộ công thức tự động.<div style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(148,163,184,0.3);color:#fde68a"><b>步驟 3（編製 7 表 Excel）：</b> 報表工程師單一寫入越中雙語 7 工作表與動態公式。</div>', '#8b5cf6');
       } else if (phase === 4) {
         document.getElementById('sim-state-text').textContent = 'BƯỚC 4: KIỂM TRA CHÉO';
         setAgentState('workbook-builder', 'Đã đóng bản nháp', false);
@@ -1410,7 +1512,7 @@
         setAgentState('visual-qa', 'Soát trình bày', true);
         spawnPacket('forge->qa', 3);
         updateGates(10);
-        addLog('<b>Bước 4 (Kiểm tra chéo):</b> Hai bàn <b>Kiểm Định Số Liệu</b> và <b>Kiểm Định Trình Bày</b> rà soát độc lập công thức, tiền thuế và bố cục 7 trang.', '#ec4899');
+        addLog('<b>Bước 4 (Kiểm tra chéo):</b> Hai bàn <b>Kiểm Định Số Liệu</b> và <b>Kiểm Định Trình Bày</b> rà soát độc lập công thức, tiền thuế và bố cục 7 trang.<div style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(148,163,184,0.3);color:#fde68a"><b>步驟 4（雙重獨立品管）：</b> 邏輯品管與視覺品管並行驗算公式、稅差與 7 表版面。</div>', '#ec4899');
       } else if (phase === 5) {
         document.getElementById('sim-state-text').textContent = 'HOÀN THÀNH (11/11)';
         setAgentState('logic-qa', 'Đạt chuẩn', false);
@@ -1419,18 +1521,18 @@
         spawnPacket('qa->command', 4);
         updateGates(11);
         document.querySelectorAll('.phase-chip').forEach(ch => ch.classList.add('done'));
-        addLog('<b>Bước 5 (Bàn giao):</b> Đạt đủ 11/11 tiêu chuẩn! Chị Lan ký duyệt và xuất file Excel báo cáo chính thức.', '#10b981');
+        addLog('<b>Bước 5 (Bàn giao):</b> Đạt đủ 11/11 tiêu chuẩn! Chị Lan ký duyệt và xuất file Excel báo cáo chính thức.<div style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(148,163,184,0.3);color:#fde68a"><b>步驟 5（簽核發布）：</b> 通過全部 11 項放行關卡，蘭姐簽核並產出正式報告！</div>', '#10b981');
       }
     }
 
     function resetSim() {
       if (simTimer) { clearInterval(simTimer); simTimer = null; }
       currentPhase = 0;
-      document.getElementById('sim-state-text').textContent = 'CHỜ LỆNH';
+      document.getElementById('sim-state-text').textContent = 'CHỜ LỆNH | 待命';
       document.querySelectorAll('.phase-chip').forEach(ch => ch.classList.remove('active', 'done'));
       CHARACTERS.forEach(c => setAgentState(c.id, 'Đang chờ', false));
       updateGates(0);
-      addLog('Đã đặt lại quy trình về trạng thái ban đầu.', '#94a3b8');
+      addLog('Đã đặt lại quy trình về trạng thái ban đầu. | 已重置回初始待命狀態。', '#94a3b8');
     }
 
     document.getElementById('btn-step').addEventListener('click', () => {
@@ -1445,6 +1547,28 @@
         if (currentPhase >= 5) { clearInterval(simTimer); simTimer = null; return; }
         runPhase(currentPhase + 1);
       }, 2800);
+    });
+
+    document.getElementById('btn-history').addEventListener('click', () => {
+      resetSim();
+      let idx = 0;
+      runHistoryStep(idx);
+      simTimer = setInterval(() => {
+        idx++;
+        if (idx >= HISTORY_SCENARIO.length) {
+          clearInterval(simTimer);
+          simTimer = null;
+          return;
+        }
+        runHistoryStep(idx);
+      }, 3000);
+    });
+
+    const btnLang = document.getElementById('btn-lang');
+    btnLang.addEventListener('click', () => {
+      if (langMode === 'bilingual') { langMode = 'vi'; btnLang.textContent = '🌐 Tiếng Việt'; }
+      else if (langMode === 'vi') { langMode = 'zh'; btnLang.textContent = '🌐 繁體中文'; }
+      else { langMode = 'bilingual'; btnLang.textContent = '🌐 VI+繁中'; }
     });
 
     document.getElementById('btn-reset').addEventListener('click', resetSim);
