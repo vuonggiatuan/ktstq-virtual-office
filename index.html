@@ -344,6 +344,71 @@
     }
     .log-item .time { font-size: 10px; color: #94a3b8; margin-right: 5px; }
 
+    /* Modal Biểu Đồ Timeline Thuế & Khối Lượng Công Việc */
+    .chart-modal {
+      position: fixed; inset: 56px 24px 24px 24px;
+      z-index: 60;
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      backdrop-filter: blur(18px);
+      border-radius: 16px;
+      padding: 16px 20px;
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+      overflow-y: auto;
+    }
+    .chart-modal.open { display: flex; }
+    .chart-modal-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+      padding-bottom: 10px;
+    }
+    .chart-kpis {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+    }
+    .kpi-box {
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .kpi-label { font-size: 10px; color: #94a3b8; text-transform: uppercase; font-weight: 700; }
+    .kpi-val { font-size: 17px; font-weight: 800; margin-top: 3px; color: #f8fafc; }
+    .chart-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px; flex: 1; min-height: 300px;
+    }
+    .chart-panel {
+      background: rgba(2, 6, 23, 0.65);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex; flex-direction: column; gap: 8px;
+      position: relative;
+    }
+    .chart-title { font-size: 12.5px; font-weight: 700; color: #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+    .chart-svg { width: 100%; height: 270px; overflow: visible; }
+    .chart-legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 10.5px; color: #cbd5e1; }
+    .legend-item { display: inline-flex; align-items: center; gap: 5px; }
+    .legend-dot { width: 9px; height: 9px; border-radius: 3px; }
+    .chart-tooltip {
+      position: fixed; z-index: 80; pointer-events: none;
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid #38bdf8;
+      border-radius: 8px;
+      padding: 7px 10px;
+      font-size: 11px; line-height: 1.45;
+      color: #f8fafc;
+      max-width: 280px;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.5);
+      display: none;
+    }
+    @media (max-width: 980px) {
+      .chart-grid { grid-template-columns: 1fr; }
+      .chart-kpis { grid-template-columns: repeat(2, 1fr); }
+    }
+
     @media (max-width: 980px) {
       .hud-top { flex-wrap: wrap; gap: 8px; }
       .inspector {
@@ -396,9 +461,10 @@
         <span id="gates-count">0/11</span>
       </div>
       <button class="btn btn-primary" id="btn-simulate">▶ 5 Bước</button>
-      <button class="btn" id="btn-history" style="border-color:#f59e0b;color:#fde68a">📜 14 Giai Đoạn</button>
-      <button class="btn" id="btn-batches" style="border-color:#06b6d4;color:#a5f3fc">📋 156 Batches</button>
-      <button class="btn" id="btn-step">Bước</button>
+      <button class="btn" id="btn-history" style="border-color:#f59e0b;color:#fde68a">📜 14 Bước</button>
+      <button class="btn" id="btn-batches" style="border-color:#06b6d4;color:#a5f3fc">📋 156 Đợt</button>
+      <button class="btn" id="btn-charts" style="border-color:#a855f7;color:#e9d5ff">📊 Biểu Đồ</button>
+      <button class="btn" id="btn-step">Tiếp</button>
       <button class="btn" id="btn-roam" style="border-color:#10b981;color:#6ee7b7">🚶 Đi Lại</button>
       <button class="btn" id="btn-lang">🌐 VI+中</button>
       <button class="btn" id="btn-theme">🌙 Đêm</button>
@@ -454,6 +520,40 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal Biểu Đồ Timeline Thuế & Công Việc Subagent -->
+  <div class="chart-modal" id="chart-modal">
+    <div class="chart-modal-head">
+      <div>
+        <div style="font-size:15px;font-weight:800">📊 Biểu Đồ Tiến Độ Dự Án — Thuế Giảm Theo Đợt & Khối Lượng Công Việc Subagent</div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:2px">Số liệu tổng hợp thực tế từ 156 đợt xử lý (12/09/2026 – 26/10/2026) | 156 批次實務進度圖表</div>
+      </div>
+      <button class="btn" id="btn-close-charts" style="border-color:#ef4444;color:#fecaca">✕ Đóng</button>
+    </div>
+    <div class="chart-kpis" id="chart-kpis"></div>
+    <div class="chart-grid">
+      <div class="chart-panel">
+        <div class="chart-title">
+          <span>1. Timeline Lượng Thuế Giảm Theo Từng Đợt (USD)</span>
+          <span style="font-size:10px;color:#6ee7b7">Cột: từng đợt • Đường: lũy kế giảm</span>
+        </div>
+        <svg class="chart-svg" id="svg-tax-chart" viewBox="0 0 560 270"></svg>
+        <div class="chart-legend">
+          <span class="legend-item"><span class="legend-dot" style="background:#10b981"></span>Thuế giảm từng đợt (USD)</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>Tổng giảm lũy kế (USD)</span>
+        </div>
+      </div>
+      <div class="chart-panel">
+        <div class="chart-title">
+          <span>2. Lượng Công Việc Qua Thời Gian Của Các Subagent</span>
+          <span style="font-size:10px;color:#93c5fd">Số đợt xử lý theo từng ngày</span>
+        </div>
+        <svg class="chart-svg" id="svg-workload-chart" viewBox="0 0 560 270"></svg>
+        <div class="chart-legend" id="workload-legend"></div>
+      </div>
+    </div>
+  </div>
+  <div class="chart-tooltip" id="chart-tooltip"></div>
 
   <script type="module">
     import * as THREE from 'three';
@@ -2099,6 +2199,172 @@
         }
         runBatchStep(batchIdx++);
       }, 1500);
+    });
+
+    // =========================================================
+    // BIỂU ĐỒ TIMELINE THUẾ & KHỐI LƯỢNG CÔNG VIỆC SUBAGENT
+    // =========================================================
+    const chartModal = document.getElementById('chart-modal');
+    const chartTooltip = document.getElementById('chart-tooltip');
+
+    function showChartTip(e, html) {
+      chartTooltip.innerHTML = html;
+      chartTooltip.style.display = 'block';
+      chartTooltip.style.left = `${Math.min(window.innerWidth - 295, e.clientX + 12)}px`;
+      chartTooltip.style.top = `${Math.max(12, e.clientY - 12)}px`;
+    }
+    function hideChartTip() { chartTooltip.style.display = 'none'; }
+
+    function renderCharts(data) {
+      const taxItems = data.filter(d => d.tax && !['0', '0.0', '0.00'].includes(d.tax));
+      let cum = 0;
+      const taxPoints = taxItems.map(d => {
+        const val = parseFloat(d.tax) || 0;
+        const reduced = -val; // âm là giảm được thuế
+        cum += reduced;
+        return { ...d, val, reduced, cum };
+      });
+      const totalReduced = cum;
+
+      // KPI Cards
+      document.getElementById('chart-kpis').innerHTML = `
+        <div class="kpi-box">
+          <div class="kpi-label">Tổng Số Đợt Xử Lý</div>
+          <div class="kpi-val">${data.length} đợt <span style="font-size:11px;color:#94a3b8">(Đợt 2–158)</span></div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Đợt Có Điều Chỉnh Thuế</div>
+          <div class="kpi-val" style="color:#38bdf8">${taxPoints.length} đợt</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Tổng Thuế Giảm Lũy Kế</div>
+          <div class="kpi-val" style="color:#10b981">$${totalReduced.toLocaleString('en-US', {maximumFractionDigits: 0})}</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Khoảng Thời Gian</div>
+          <div class="kpi-val" style="font-size:14px;margin-top:6px">12/09/2026 – 26/10/2026</div>
+        </div>
+      `;
+
+      // 1) SVG Tax Timeline Chart
+      const svgTax = document.getElementById('svg-tax-chart');
+      const W = 560, H = 270, padL = 52, padR = 52, padT = 18, padB = 38;
+      const plotW = W - padL - padR, plotH = H - padT - padB;
+      const maxBar = Math.max(...taxPoints.map(p => Math.abs(p.reduced)), 1);
+      const maxCum = Math.max(...taxPoints.map(p => Math.abs(p.cum)), 1);
+
+      let taxHtml = '';
+      // Grid lines
+      for (let i = 0; i <= 4; i++) {
+        const y = padT + (plotH * i) / 4;
+        const lbl = Math.round(maxBar * (1 - i / 4)).toLocaleString('en-US');
+        taxHtml += `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="rgba(148,163,184,0.16)" stroke-dasharray="3 3"/>`;
+        taxHtml += `<text x="${padL - 6}" y="${y + 3}" text-anchor="end" font-size="9" fill="#94a3b8">$${(lbl)}</text>`;
+      }
+
+      const barW = Math.max(4, plotW / taxPoints.length - 3);
+      let linePts = [];
+      taxPoints.forEach((p, idx) => {
+        const x = padL + (idx + 0.5) * (plotW / taxPoints.length);
+        const bh = (Math.max(0, p.reduced) / maxBar) * plotH;
+        const y = padT + plotH - bh;
+        const cy = padT + plotH - (Math.max(0, p.cum) / maxCum) * plotH;
+        linePts.push(`${x.toFixed(1)},${cy.toFixed(1)}`);
+
+        const col = p.reduced >= 0 ? '#10b981' : '#ef4444';
+        taxHtml += `<rect class="tax-bar" data-idx="${idx}" x="${(x - barW/2).toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(2, bh).toFixed(1)}" rx="2" fill="${col}" opacity="0.85" style="cursor:pointer"/>`;
+        if (idx % 6 === 0 || idx === taxPoints.length - 1) {
+          taxHtml += `<text x="${x.toFixed(1)}" y="${H - 18}" text-anchor="middle" font-size="8.5" fill="#94a3b8">Đ${p.b}</text>`;
+          taxHtml += `<text x="${x.toFixed(1)}" y="${H - 7}" text-anchor="middle" font-size="7.5" fill="#64748b">${p.dt.slice(5)}</text>`;
+        }
+      });
+
+      taxHtml += `<polyline fill="none" stroke="#f59e0b" stroke-width="2.2" points="${linePts.join(' ')}"/>`;
+      taxPoints.forEach((p, idx) => {
+        const [cx, cy] = linePts[idx].split(',');
+        taxHtml += `<circle class="tax-bar" data-idx="${idx}" cx="${cx}" cy="${cy}" r="3" fill="#fbbf24" style="cursor:pointer"/>`;
+      });
+      svgTax.innerHTML = taxHtml;
+
+      svgTax.querySelectorAll('.tax-bar').forEach(el => {
+        el.addEventListener('mousemove', e => {
+          const p = taxPoints[Number(el.dataset.idx)];
+          showChartTip(e, `<b>Đợt ${p.b}</b> (${p.dt})<br/>Giảm đợt này: <b style="color:#10b981">$${p.reduced.toLocaleString('en-US', {maximumFractionDigits:2})}</b><br/>Lũy kế: <b style="color:#fbbf24">$${p.cum.toLocaleString('en-US', {maximumFractionDigits:2})}</b><br/><span style="color:#cbd5e1">${p.area}</span>`);
+        });
+        el.addEventListener('mouseleave', hideChartTip);
+      });
+
+      // 2) SVG Subagent Workload Over Time
+      const dates = [...new Set(data.map(d => d.dt).filter(Boolean))].sort();
+      const agentKeys = ['import-analyst', 'usage-analyst', 'export-analyst', 'tax-analyst', 'data-extractor'];
+      const agentMeta = {
+        'import-analyst': { label: 'Nhập Khẩu', color: '#3b82f6' },
+        'usage-analyst':  { label: 'Định Mức NPL', color: '#f59e0b' },
+        'export-analyst': { label: 'Xuất Khẩu', color: '#10b981' },
+        'tax-analyst':    { label: 'Thuế & NPL', color: '#ef4444' },
+        'data-extractor': { label: 'Kho Dữ Liệu', color: '#06b6d4' }
+      };
+
+      const byDate = dates.map(dt => {
+        const items = data.filter(d => d.dt === dt);
+        const counts = {};
+        agentKeys.forEach(k => counts[k] = items.filter(x => x.agent === k).length);
+        return { dt, total: items.length, counts };
+      });
+      const maxDay = Math.max(...byDate.map(d => d.total), 1);
+
+      const svgWork = document.getElementById('svg-workload-chart');
+      const wPadL = 36, wPadR = 16, wPlotW = W - wPadL - wPadR;
+      let workHtml = '';
+      for (let i = 0; i <= 4; i++) {
+        const y = padT + (plotH * i) / 4;
+        const lbl = Math.round(maxDay * (1 - i / 4));
+        workHtml += `<line x1="${wPadL}" y1="${y}" x2="${W - wPadR}" y2="${y}" stroke="rgba(148,163,184,0.16)" stroke-dasharray="3 3"/>`;
+        workHtml += `<text x="${wPadL - 6}" y="${y + 3}" text-anchor="end" font-size="9" fill="#94a3b8">${lbl}</text>`;
+      }
+
+      const colW = Math.max(10, wPlotW / byDate.length - 6);
+      byDate.forEach((d, idx) => {
+        const x = wPadL + (idx + 0.5) * (wPlotW / byDate.length);
+        let curY = padT + plotH;
+        agentKeys.forEach(k => {
+          const cnt = d.counts[k];
+          if (!cnt) return;
+          const h = (cnt / maxDay) * plotH;
+          curY -= h;
+          workHtml += `<rect class="work-col" data-idx="${idx}" x="${(x - colW/2).toFixed(1)}" y="${curY.toFixed(1)}" width="${colW.toFixed(1)}" height="${h.toFixed(1)}" fill="${agentMeta[k].color}" opacity="0.9" style="cursor:pointer"/>`;
+        });
+        if (idx % 2 === 0 || idx === byDate.length - 1) {
+          workHtml += `<text x="${x.toFixed(1)}" y="${H - 14}" text-anchor="middle" font-size="8.5" fill="#94a3b8">${d.dt.slice(5)}</text>`;
+        }
+      });
+      svgWork.innerHTML = workHtml;
+
+      svgWork.querySelectorAll('.work-col').forEach(el => {
+        el.addEventListener('mousemove', e => {
+          const d = byDate[Number(el.dataset.idx)];
+          const lines = agentKeys.filter(k => d.counts[k] > 0)
+            .map(k => `<span style="color:${agentMeta[k].color}">●</span> ${agentMeta[k].label}: <b>${d.counts[k]}</b> đợt`).join('<br/>');
+          showChartTip(e, `<b>Ngày ${d.dt}</b> (Tổng: ${d.total} đợt)<br/>${lines}`);
+        });
+        el.addEventListener('mouseleave', hideChartTip);
+      });
+
+      // Legend with total counts per subagent
+      document.getElementById('workload-legend').innerHTML = agentKeys.map(k => {
+        const sum = data.filter(x => x.agent === k).length;
+        return `<span class="legend-item"><span class="legend-dot" style="background:${agentMeta[k].color}"></span>${agentMeta[k].label} (${sum})</span>`;
+      }).join('');
+    }
+
+    document.getElementById('btn-charts').addEventListener('click', async () => {
+      if (!batchData) batchData = await (await fetch('./batches.json')).json();
+      renderCharts(batchData);
+      chartModal.classList.add('open');
+    });
+    document.getElementById('btn-close-charts').addEventListener('click', () => {
+      chartModal.classList.remove('open');
+      hideChartTip();
     });
 
     const btnLang = document.getElementById('btn-lang');
