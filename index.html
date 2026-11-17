@@ -66,6 +66,59 @@
       color: #6ee7b7;
     }
 
+    /* Bong bóng hội thoại 3D khi subagent trao việc & dữ liệu */
+    .speech-bubble {
+      position: absolute;
+      transform: translate(-50%, -100%);
+      max-width: 255px;
+      background: rgba(255, 255, 255, 0.96);
+      color: #0f172a;
+      border: 2px solid #3b82f6;
+      border-radius: 12px;
+      padding: 7px 10px;
+      font-size: 11px;
+      line-height: 1.4;
+      box-shadow: 0 10px 26px rgba(15, 23, 42, 0.38);
+      pointer-events: none;
+      z-index: 15;
+      animation: popBubble 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .speech-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -8px; left: 50%;
+      transform: translateX(-50%);
+      border-width: 8px 7px 0 7px;
+      border-style: solid;
+      border-color: #3b82f6 transparent transparent transparent;
+    }
+    .speech-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 6px;
+      font-size: 9.5px; font-weight: 800; text-transform: uppercase;
+      color: #1e3a8a; margin-bottom: 3px;
+    }
+    .speech-payload {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: #e0f2fe;
+      color: #0369a1;
+      font-size: 9.5px;
+      font-weight: 700;
+    }
+    .speech-zh {
+      margin-top: 3px;
+      padding-top: 3px;
+      border-top: 1px dashed #cbd5e1;
+      color: #475569;
+      font-size: 10.5px;
+    }
+    @keyframes popBubble {
+      from { opacity: 0; transform: translate(-50%, -85%) scale(0.86); }
+      to   { opacity: 1; transform: translate(-50%, -100%) scale(1); }
+    }
+
     .zone-label {
       position: absolute;
       transform: translate(-50%, -50%);
@@ -1223,6 +1276,40 @@
     // =========================================================
     const labelsLayer = document.getElementById('labels-layer');
     const labelEls = {};
+    const activeBubbles = {}; // { [agentId]: { el, expiresAt } }
+
+    function clearAllBubbles() {
+      Object.values(activeBubbles).forEach(b => b.el.remove());
+      for (const k in activeBubbles) delete activeBubbles[k];
+    }
+
+    function showSpeech(agentId, routeTag, viText, zhText, payload, delayMs = 0, durationMs = 4600) {
+      setTimeout(() => {
+        if (activeBubbles[agentId]) {
+          activeBubbles[agentId].el.remove();
+          delete activeBubbles[agentId];
+        }
+        const cfg = charMap[agentId]?.cfg;
+        if (!cfg) return;
+        const el = document.createElement('div');
+        el.className = 'speech-bubble';
+        el.style.borderColor = cfg.color;
+
+        let bodyHtml = `<div>${viText}</div>`;
+        if (langMode === 'zh') bodyHtml = `<div>${zhText}</div>`;
+        else if (langMode === 'bilingual') bodyHtml = `<div>${viText}</div><div class="speech-zh">${zhText}</div>`;
+
+        el.innerHTML = `
+          <div class="speech-head" style="color:${cfg.color}">
+            <span>💬 ${routeTag}</span>
+          </div>
+          ${bodyHtml}
+          ${payload ? `<div class="speech-payload">📦 ${payload}</div>` : ''}
+        `;
+        labelsLayer.appendChild(el);
+        activeBubbles[agentId] = { el, expiresAt: performance.now() + durationMs };
+      }, delayMs);
+    }
 
     CHARACTERS.forEach(cfg => {
       const el = document.createElement('div');
@@ -1451,6 +1538,7 @@
     function runHistoryStep(idx) {
       const step = HISTORY_SCENARIO[idx];
       if (!step) return;
+      clearAllBubbles();
       document.getElementById('sim-state-text').textContent = step.stage;
       document.querySelectorAll('.phase-chip').forEach(ch => {
         const p = Number(ch.dataset.phase);
@@ -1465,6 +1553,30 @@
       spawnPacket(step.route, 4);
       updateGates(step.gates);
 
+      // Hội thoại 3D chi tiết giữa các subagent theo từng giai đoạn
+      if (idx === 0) {
+        showSpeech('orchestrator', 'Chị Lan ➔ Kho SQL', 'Chốt kỳ 01/07/2023–30/09/2026. Lấy snapshot Read-Only nhé!', '鎖定 2023/07/01–2026/09/30，請唯讀匯出快照！', 'Yêu cầu phạm vi 3 năm', 0, 3400);
+        showSpeech('data-extractor', 'Kho SQL ➔ Chị Lan', 'Đã khóa 11.962 tờ khai & 255.346 dòng nhập. Không chạm ECUS!', '已封存 11,962 報單與 255,346 入庫，絕不改 ECUS！', 'snapshot-manifest.json', 850, 3400);
+      } else if (idx === 1) {
+        showSpeech('import-analyst', 'Nhập Khẩu ➔ Định Mức', 'Phát hiện 7 nhóm đa ĐVT & 273 phiếu đổi mã (818 dòng)!', '發現 7 組多單位報單與 273 筆換碼（818 筆流水）！', '818 dòng đổi mã', 0, 3400);
+        showSpeech('usage-analyst', 'Định Mức ➔ Chị Lan', 'Đã tách khổ từng dòng, giữ nguyên dòng thiếu cơ sở quy đổi.', '已逐筆拆幅寬，缺依據者保留不推估。', 'Bảng ĐVT sạch', 850, 3400);
+      } else if (idx === 2) {
+        showSpeech('export-analyst', 'Xuất Khẩu ➔ Định Mức', 'Đơn SF2604036-A có 6 E52 (6.338 PCE), tách xong 75 dòng OUT!', '訂單 SF2604036-A（6 筆 E52、6,338 PCE）與 75 筆 OUT 已拆解！', '6.338 PCE + 75 OUT', 0, 3400);
+        showSpeech('usage-analyst', 'Định Mức ➔ Lập Sổ', 'Đã kiểm 6 file XLS (3.775 dòng), bỏ lấy định mức dòng đầu!', '已核 6 份 XLS（3,775 筆），禁用首筆預設單耗！', '3.775 dòng định mức', 850, 3400);
+      } else if (idx === 3) {
+        showSpeech('export-analyst', 'Đối Chiếu ➔ Lập Sổ', 'Cầu nối 2023–2026 xong: 143 khóa năm, 83 khóa tháng 6!', '2023–2026 橋接完成：143 年度鍵值、83 六月鍵值！', '143 khóa năm (run11)', 0, 3400);
+        showSpeech('workbook-builder', 'Lập Sổ Excel', 'Đã tách riêng BCQT gốc & tính lại. Chênh chuyển năm = 0!', '已區分原申報與重算 BCQT，跨年差異為 0！', 'BCQT Tách Bạch', 850, 3400);
+      } else if (idx === 4) {
+        showSpeech('tax-analyst', 'Thuế NPL ➔ Lập Sổ', 'Tính lại 10% VAT. Mã 2 thuế suất đã gắn cờ Mâu thuẫn thuế suất!', '重算 10% 稅差完成，雙稅率已標記「稅率衝突」！', 'ECUS_TaxCaculate', 0, 3400);
+        showSpeech('workbook-builder', 'Lập Sổ ➔ Chị Lan', 'Đã phân tuyến Luật 90/2025, NĐ 167/2025 & TT 121/2025 vào báo cáo.', '已依 90/2025 法、167/2025 議定與 121/2025 通告分流！', '7 Sheet Việt-Hoa', 850, 3400);
+      } else if (idx === 5) {
+        showSpeech('logic-qa', 'Kiểm Định Số ➔ Trình Bày', 'Khớp 2 E52 scan (308849150910, 308849504260) & HĐ 111 (7.462.800đ)!', '掃描檔兩筆 E52 與運費發票 111（7,462,800 VND）完全吻合！', 'PDF Scan 25102026', 0, 3400);
+        showSpeech('visual-qa', 'Kiểm Định Trình Bày', 'CN2608104 & DV2608105 cân số, giữ tách 2 phiếu không cộng trùng!', 'CN2608104 與 DV2608105 已核對，絕不重複加總！', '7 trang PDF đạt', 850, 3400);
+      } else if (idx === 6) {
+        showSpeech('logic-qa', '2 Bàn QA ➔ Chị Lan', 'verify_ktstq.py đạt 49/49 tests, 140 mã hash nguyên vẹn!', 'verify_ktstq.py 通過 49/49 測試、140 筆雜湊零異動！', '49/49 PASS + 140 Hash', 0, 4200);
+        showSpeech('orchestrator', 'Chị Lan ➔ Toàn Phòng', 'Xuất sắc! Đã đồng bộ 3 bộ Skill & Văn phòng ảo. Ký duyệt hồ sơ!', '太棒了！3 套 Skill 與 3D 辦公室已同步，正式簽核結案！', 'Hồ Sơ KTSTQ Đạt Chuẩn', 900, 4200);
+      }
+
       let text = '';
       if (langMode === 'vi') text = step.vi;
       else if (langMode === 'zh') text = step.zh;
@@ -1474,6 +1586,7 @@
 
     function runPhase(phase) {
       currentPhase = phase;
+      clearAllBubbles();
       document.querySelectorAll('.phase-chip').forEach(ch => {
         const p = Number(ch.dataset.phase);
         ch.classList.toggle('active', p === phase);
@@ -1486,7 +1599,9 @@
         setAgentState('data-extractor', 'Đang trích xuất', true);
         spawnPacket('vault->command', 3);
         updateGates(2);
-        addLog('<b>Bước 1 (Lấy số liệu gốc):</b> Chị Lan chốt ngày đối chiếu. Bộ phận <b>Trích Xuất Số Liệu SQL</b> lấy dữ liệu 1 lần chế độ chỉ đọc và khóa niêm phong.<div style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(148,163,184,0.3);color:#fde68a"><b>步驟 1（唯讀取數）：</b> 蘭姐確認對帳日期，SQL 取數組一次性唯讀匯出並建立雜湊封存。</div>', '#06b6d4');
+        showSpeech('orchestrator', 'Chị Lan ➔ Kho SQL', 'Kho trích xuất dữ liệu gốc 1 lần (Read-Only) giúp chị nhé!', '請唯讀匯出一次原始資料，注意不可外洩連線密碼！', 'Lệnh xuất SQL an toàn', 0, 3200);
+        showSpeech('data-extractor', 'Kho SQL ➔ Chị Lan', 'Rõ! Đang xuất 4 bộ Xuất/Nhập/Định mức/Thuế và khóa mã SHA-256.', '收到！正匯出四大資料集並產生 SHA-256 封存清單。', '4 JSON + snapshot-manifest', 800, 3200);
+        addLog('<b>Bước 1 (Chị Lan ➔ Kho SQL):</b> Chị Lan chốt ngày đối chiếu. Kho SQL xuất dữ liệu 1 lần chế độ chỉ đọc và khóa niêm phong.<div style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(148,163,184,0.3);color:#fde68a"><b>步驟 1（蘭姐 ➔ SQL 取數）：</b> 蘭姐確認對帳日期，SQL 組一次性唯讀匯出並封存。</div>', '#06b6d4');
       } else if (phase === 2) {
         document.getElementById('sim-state-text').textContent = 'BƯỚC 2: ĐỐI CHIẾU 4 MẢNG';
         setAgentState('data-extractor', 'Đã niêm phong', false);
@@ -1495,7 +1610,10 @@
         });
         spawnPacket('command->analytics', 4);
         updateGates(5);
-        addLog('<b>Bước 2 (Kiểm tra 4 mảng):</b> 4 nhiệm vụ <b>Xuất Khẩu, Nhập Khẩu, Định Mức NPL, Thuế & NPL</b> chạy song song trên bản sao số liệu sạch.<div style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(148,163,184,0.3);color:#fde68a"><b>步驟 2（四大領域並行分析）：</b> 出口、進口、單耗與稅務/NPL 四組同步進行稽核比對。</div>', '#10b981');
+        showSpeech('orchestrator', 'Chị Lan ➔ 4 Bàn Đối Chiếu', '4 bàn kiểm tra song song từng mảng, tuyệt đối không tự đoán số!', '四組並行稽核各自檔案，嚴禁跨區改檔或猜測稅率！', '4 Gói JSON Độc Lập', 0, 3200);
+        showSpeech('export-analyst', 'Bàn Xuất Khẩu', 'Đang soát ECUS_ExportQTY_Stat sai số 0.01!', '正核對出口數量與 ECUS_ExportQTY_Stat！', 'export.json', 700, 3200);
+        showSpeech('tax-analyst', 'Bàn Thuế & NPL', 'Đang tính lại VAT 10% & lọc trùng mã NPL!', '正重算 10% 稅差並檢查 NPL 稅率衝突！', 'tax.json', 1100, 3200);
+        addLog('<b>Bước 2 (Chị Lan ➔ 4 Bàn Đối Chiếu):</b> 4 nhiệm vụ <b>Xuất, Nhập, Định mức, Thuế NPL</b> chạy song song trên bản sao số liệu sạch.<div style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(148,163,184,0.3);color:#fde68a"><b>步驟 2（蘭姐 ➔ 四大分析組）：</b> 出口、進口、單耗與稅務組同步對帳。</div>', '#10b981');
       } else if (phase === 3) {
         document.getElementById('sim-state-text').textContent = 'BƯỚC 3: LẬP SỔ EXCEL';
         ['export-analyst', 'import-analyst', 'usage-analyst', 'tax-analyst'].forEach(id => {
@@ -1504,7 +1622,9 @@
         setAgentState('workbook-builder', 'Đang dựng 7 trang', true);
         spawnPacket('analytics->forge', 4);
         updateGates(8);
-        addLog('<b>Bước 3 (Lập sổ Excel):</b> Bộ phận <b>Lập Sổ Excel 7 Trang</b> tổng hợp thành 1 file song ngữ Việt - Hoa với toàn bộ công thức tự động.<div style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(148,163,184,0.3);color:#fde68a"><b>步驟 3（編製 7 表 Excel）：</b> 報表工程師單一寫入越中雙語 7 工作表與動態公式。</div>', '#8b5cf6');
+        showSpeech('tax-analyst', '4 Bàn ➔ Lập Sổ Excel', 'Đã gửi đủ 4 bảng kết quả JSON đã kiểm tra cho Linh!', '已交付四份驗證完畢的分析 JSON 給報表組！', '4 Analysis Manifests', 0, 3200);
+        showSpeech('workbook-builder', 'Lập Sổ Excel', 'Nhận đủ! Đang dựng 7 trang Việt-Hoa bằng công thức Excel động.', '收到！正以動態公式編製 7 頁越中雙語報表。', 'candidate.xlsx (7 sheets)', 850, 3200);
+        addLog('<b>Bước 3 (4 Bàn ➔ Lập Sổ Excel):</b> Bàn Lập Sổ nhận 4 bảng kết quả và dựng file 7 trang song ngữ Việt - Hoa.<div style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(148,163,184,0.3);color:#fde68a"><b>步驟 3（四組 ➔ 報表工程師）：</b> 單一寫入 7 表雙語 Excel 與動態公式。</div>', '#8b5cf6');
       } else if (phase === 4) {
         document.getElementById('sim-state-text').textContent = 'BƯỚC 4: KIỂM TRA CHÉO';
         setAgentState('workbook-builder', 'Đã đóng bản nháp', false);
@@ -1512,7 +1632,10 @@
         setAgentState('visual-qa', 'Soát trình bày', true);
         spawnPacket('forge->qa', 3);
         updateGates(10);
-        addLog('<b>Bước 4 (Kiểm tra chéo):</b> Hai bàn <b>Kiểm Định Số Liệu</b> và <b>Kiểm Định Trình Bày</b> rà soát độc lập công thức, tiền thuế và bố cục 7 trang.<div style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(148,163,184,0.3);color:#fde68a"><b>步驟 4（雙重獨立品管）：</b> 邏輯品管與視覺品管並行驗算公式、稅差與 7 表版面。</div>', '#ec4899');
+        showSpeech('workbook-builder', 'Lập Sổ ➔ 2 Bàn QA', 'Bản nháp candidate.xlsx đã đóng, nhờ 2 bàn QA soát độc lập!', 'candidate.xlsx 已封版，請兩組 QA 獨立複核！', 'candidate.xlsx + Previews', 0, 3200);
+        showSpeech('logic-qa', 'Kiểm Định Số Liệu', 'Đang quét công thức, số tờ khai & khớp thuế <= 0.01!', '正掃描公式錯誤、報單號格式與稅差勾稽！', 'logic-qa.json', 750, 3200);
+        showSpeech('visual-qa', 'Kiểm Định Trình Bày', 'Đang soi 7 trang: tiêu đề Việt-Hoa, filter & biểu đồ!', '正檢查 7 頁版面、篩選器、凍結窗格與圖表！', 'visual-qa.json', 1100, 3200);
+        addLog('<b>Bước 4 (Lập Sổ ➔ 2 Bàn QA):</b> Kiểm Định Số Liệu & Trình Bày rà soát độc lập công thức, tiền thuế và bố cục 7 trang.<div style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(148,163,184,0.3);color:#fde68a"><b>步驟 4（報表組 ➔ 雙重 QA）：</b> 邏輯與視覺品管並行獨立稽核。</div>', '#ec4899');
       } else if (phase === 5) {
         document.getElementById('sim-state-text').textContent = 'HOÀN THÀNH (11/11)';
         setAgentState('logic-qa', 'Đạt chuẩn', false);
@@ -1521,7 +1644,9 @@
         spawnPacket('qa->command', 4);
         updateGates(11);
         document.querySelectorAll('.phase-chip').forEach(ch => ch.classList.add('done'));
-        addLog('<b>Bước 5 (Bàn giao):</b> Đạt đủ 11/11 tiêu chuẩn! Chị Lan ký duyệt và xuất file Excel báo cáo chính thức.<div style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(148,163,184,0.3);color:#fde68a"><b>步驟 5（簽核發布）：</b> 通過全部 11 項放行關卡，蘭姐簽核並產出正式報告！</div>', '#10b981');
+        showSpeech('logic-qa', '2 Bàn QA ➔ Chị Lan', 'Cả Logic & Visual QA đều ĐẠT 100%, không lỗi công thức!', '邏輯與視覺品管全數通過，無任何公式或版面異常！', 'QA PASS (11/11 Gates)', 0, 4200);
+        showSpeech('orchestrator', 'Chị Lan ➔ Toàn Phòng', 'Tuyệt vời! Đã ký duyệt release-manifest.json & xuất file chính thức!', '太棒了！已簽核 release-manifest.json 並發布正式報表！', 'Báo Cáo Chính Thức (.xlsx)', 900, 4200);
+        addLog('<b>Bước 5 (2 Bàn QA ➔ Chị Lan):</b> Đạt đủ 11/11 tiêu chuẩn! Chị Lan ký duyệt và xuất file Excel báo cáo chính thức.<div style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(148,163,184,0.3);color:#fde68a"><b>步驟 5（雙重 QA ➔ 蘭姐）：</b> 通過全部 11 項關卡，蘭姐簽核發布！</div>', '#10b981');
       }
     }
 
@@ -1633,6 +1758,20 @@
           el.style.left = `${p.x}px`;
           el.style.top = `${p.y}px`;
           el.style.opacity = p.visible ? '1' : '0';
+        }
+
+        // Cập nhật vị trí bong bóng hội thoại phía trên nhãn nhân vật
+        const bubble = activeBubbles[c.cfg.id];
+        if (bubble) {
+          if (performance.now() > bubble.expiresAt) {
+            bubble.el.remove();
+            delete activeBubbles[c.cfg.id];
+          } else {
+            const bPos = projectToScreen(new THREE.Vector3(c.cfg.pos[0], c.cfg.pos[1] + 2.55, c.cfg.pos[2]));
+            bubble.el.style.left = `${bPos.x}px`;
+            bubble.el.style.top = `${bPos.y - 26}px`;
+            bubble.el.style.opacity = bPos.visible ? '1' : '0';
+          }
         }
       });
 
