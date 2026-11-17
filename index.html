@@ -370,7 +370,7 @@
       <div class="brand-icon">XNK</div>
       <div>
         <h1>Văn Phòng Ảo Xuất Nhập Khẩu — New Wide</h1>
-        <p>Chủ quản: Chị Lan • Phối hợp 9 nhiệm vụ làm Báo Cáo Hải Quan (Chỉ xem, không sửa dữ liệu gốc)</p>
+        <p>Chủ quản: Chị Lan • Phối hợp 10 vị trí làm Báo Cáo & Hệ Thống DCS_XNT Hải Quan</p>
       </div>
     </div>
 
@@ -428,7 +428,7 @@
     </div>
 
     <div class="hud-card">
-      <div class="minimap-title"><span>9 Nhiệm Vụ Trong Văn Phòng</span></div>
+      <div class="minimap-title"><span>10 Nhiệm Vụ Trong Văn Phòng</span></div>
       <div class="roster-strip" id="roster-strip"></div>
     </div>
   </div>
@@ -624,6 +624,30 @@
           'Viết công thức Excel tự động cho toàn bộ cột tính toán, tô màu phân biệt trạng thái Khớp / Lệch / Thiếu.',
           'Đóng băng dòng tiêu đề, bật bộ lọc tự động cho các bảng dữ liệu lớn và vẽ biểu đồ trực quan.',
           'Tiếp nhận danh sách lỗi từ 2 bàn Kiểm tra chéo (nếu có) và sửa đúng trọng tâm (tối đa 2 lượt sửa).'
+        ]
+      },
+      {
+        id: 'dcs-xnt-builder',
+        name: 'Xây Dựng Hệ Thống DCS_XNT',
+        shortLabel: 'Hệ Thống DCS_XNT',
+        role: 'Tạo hệ thống Xuất–Nhập–Tồn cho Hải quan theo số tồn đúng của Chị Lan',
+        zone: 'forge',
+        zoneLabel: 'Khu Hệ Thống DCS_XNT',
+        color: '#f97316',
+        accent: '#fdba74',
+        initials: 'XNT',
+        hairColor: 0x1e293b,
+        female: false,
+        pos: [7.1, 0.18, 3.6],
+        facing: -Math.PI / 2,
+        reads: 'Số liệu tồn kho đúng do Chị Lan (Chủ Quản) chốt & yêu cầu nghiệp vụ Xuất–Nhập–Tồn cho Hải quan.',
+        writes: 'Hệ thống báo cáo & tra cứu Xuất–Nhập–Tồn DCS_XNT (Mẫu 15/16) theo đúng ý Chị Lan.',
+        restrictions: 'Tuyệt đối lấy số tồn đúng do Chị Lan cung cấp làm chuẩn; không tự ý suy diễn số tồn và không sửa dữ liệu gốc của Hải quan.',
+        tasks: [
+          'Nhận bảng số liệu tồn kho đúng (tồn đầu, tồn cuối từng mã nguyên phụ liệu) trực tiếp từ Chị Lan.',
+          'Thiết kế và lập trình hệ thống DCS_XNT hiển thị rõ luồng Nhập – Xuất – Tồn theo đúng quy tắc và mẫu biểu Chị Lan yêu cầu.',
+          'Tách bạch rõ số liệu khai báo Hải quan, số liệu kho thực tế và bảng giải trình chênh lệch để trình đoàn kiểm tra.',
+          'Cập nhật giao diện, bộ lọc và xuất báo cáo trực tiếp theo phản hồi chỉnh sửa của Chị Lan.'
         ]
       },
       {
@@ -844,7 +868,7 @@
     createCarpetZone('command',   0,    -5.0, 5.6, 4.2, 0.24, 0x6366f1, 0xc7d2fe);
     createCarpetZone('vault',    -7.4,  -1.8, 4.2, 4.8, 0.06, 0x06b6d4, 0xcffafe);
     createCarpetZone('analytics',-0.6,   3.0, 13.4,4.4, 0.05, 0x10b981, 0xdbeafe);
-    createCarpetZone('forge',     7.3,   0.1, 4.2, 4.4, 0.08, 0x8b5cf6, 0xede9fe);
+    createCarpetZone('forge',     7.3,   1.6, 4.2, 6.6, 0.08, 0x8b5cf6, 0xede9fe);
     createCarpetZone('qa',        6.1,  -4.6, 5.8, 4.2, 0.12, 0xec4899, 0xfce7f3);
 
     // Vách kính phòng Chủ Quản + Cửa kính vào phòng
@@ -1058,9 +1082,12 @@
       worldGroup.add(roll);
     });
 
-    // D) Bàn Lập Sổ Excel + Máy In / Photocopy
+    // D) Bàn Lập Sổ Excel + Bàn Hệ Thống DCS_XNT + Máy In / Photocopy
     createWorkstation(8.1, 0.1, 0.1, Math.PI / 2, 0x8b5cf6, true);
     createOfficeChair(7.1, 0.1, 0.1, -Math.PI / 2, 0x5b21b6);
+
+    createWorkstation(8.1, 0.1, 3.6, Math.PI / 2, 0xf97316, true);
+    createOfficeChair(7.1, 0.1, 3.6, -Math.PI / 2, 0xc2410c);
 
     const printer = new THREE.Mesh(new THREE.BoxGeometry(1.0, 1.05, 0.9), flatMat(0xf8fafc));
     printer.position.set(8.6, 0.6, 1.75);
@@ -1745,15 +1772,15 @@
         zh: '<b>階段 12/14 — 掃描單證與運費核對（2026/10/25）：</b> 比對兩筆 E52 報單及運費發票 111（<code>7,462,800 VND</code>），兩張傳票不重複加總。'
       },
       {
-        stage: '13/14 • Sổ 7 Sheet & QA',
+        stage: '13/14 • Sổ 7 Sheet, DCS_XNT & QA',
         phase: 4, gates: 10, route: 'forge->qa',
-        active: ['workbook-builder', 'logic-qa', 'visual-qa'], done: [],
+        active: ['workbook-builder', 'dcs-xnt-builder', 'logic-qa', 'visual-qa'], done: [],
         talk: [
-          ['workbook-builder', 'Lập Sổ ➔ 2 Bàn QA', 'Đã đóng run11 & candidate.xlsx 7 sheet song ngữ Việt–Hoa!', '已完成 run11 與 7 頁越中雙語 candidate.xlsx 封版！', 'run11 + candidate.xlsx', 0],
-          ['logic-qa', '2 Bàn QA ➔ Chị Lan', 'Chênh chuyển năm = 0 trên khóa ghép được; công thức & 7 sheet đạt!', '可配對鍵值跨年差異為 0，公式與 7 頁版面複核通過！', 'QA Độc Lập Đạt', 850]
+          ['orchestrator', 'Chị Lan ➔ Hệ Thống DCS_XNT', 'Chị gửi bảng tồn đúng đã chốt, em dựng hệ thống DCS_XNT theo đúng ý chị nhé!', '我把核對正確的庫存表給你，請依我的規則建置 DCS_XNT 系統！', 'Số Tồn Đúng (Chị Lan)', 0],
+          ['dcs-xnt-builder', 'Hệ Thống DCS_XNT ➔ QA', 'Đã dựng xong hệ thống DCS_XNT cho Hải quan theo đúng số tồn của Chị Lan!', '已依蘭姐的正確庫存與規則完成海關 DCS_XNT 系統！', 'Hệ Thống DCS_XNT', 850]
         ],
-        vi: '<b>Giai đoạn 13/14 — Đóng sổ 7 Sheet & Kiểm định độc lập:</b> Bản <code>run11</code> đạt <code>0</code> chênh chuyển năm trên khóa ghép được; Logic QA & Visual QA duyệt 7 trang song ngữ.',
-        zh: '<b>階段 13/14 — 7 頁報表封版與獨立 QA：</b> <code>run11</code> 可配對鍵值跨年差異為 0；邏輯與視覺品管複核 7 頁雙語報表通過。'
+        vi: '<b>Giai đoạn 13/14 — Đóng sổ 7 Sheet & Hệ thống DCS_XNT:</b> Chị Lan cấp số tồn đúng để dựng hệ thống DCS_XNT cho Hải quan; hai bàn QA kiểm định độc lập 7 trang.',
+        zh: '<b>階段 13/14 — 7 頁報表與 DCS_XNT 系統建置：</b> 蘭姐提供正確庫存建置海關 DCS_XNT 系統；雙 QA 獨立複核通過。'
       },
       {
         stage: '14/14 • 49/49 Tests & Kết Thúc',
@@ -1860,19 +1887,23 @@
         showSpeech('tax-analyst', 'Bàn Thuế & NPL', 'Đang tính lại VAT 10% & lọc trùng mã NPL!', '正重算 10% 稅差並檢查 NPL 稅率衝突！', 'tax.json', 1100, 3200);
         addLog('<b>Bước 2 (Chị Lan ➔ 4 Bàn Đối Chiếu):</b> 4 nhiệm vụ <b>Xuất, Nhập, Định mức, Thuế NPL</b> chạy song song trên bản sao số liệu sạch.<div style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(148,163,184,0.3);color:#fde68a"><b>步驟 2（蘭姐 ➔ 四大分析組）：</b> 出口、進口、單耗與稅務組同步對帳。</div>', '#10b981');
       } else if (phase === 3) {
-        document.getElementById('sim-state-text').textContent = 'BƯỚC 3: LẬP SỔ EXCEL';
+        document.getElementById('sim-state-text').textContent = 'BƯỚC 3: LẬP SỔ & DCS_XNT';
         ['export-analyst', 'import-analyst', 'usage-analyst', 'tax-analyst'].forEach(id => {
           setAgentState(id, 'Đã nộp bảng', false);
         });
         setAgentState('workbook-builder', 'Đang dựng 7 trang', true);
+        setAgentState('dcs-xnt-builder', 'Đang dựng DCS_XNT', true);
         spawnPacket('analytics->forge', 4);
+        spawnPacket('command->analytics', 2);
         updateGates(8);
-        showSpeech('tax-analyst', '4 Bàn ➔ Lập Sổ Excel', 'Đã gửi đủ 4 bảng kết quả JSON đã kiểm tra cho Linh!', '已交付四份驗證完畢的分析 JSON 給報表組！', '4 Analysis Manifests', 0, 3200);
-        showSpeech('workbook-builder', 'Lập Sổ Excel', 'Nhận đủ! Đang dựng 7 trang Việt-Hoa bằng công thức Excel động.', '收到！正以動態公式編製 7 頁越中雙語報表。', 'candidate.xlsx (7 sheets)', 850, 3200);
-        addLog('<b>Bước 3 (4 Bàn ➔ Lập Sổ Excel):</b> Bàn Lập Sổ nhận 4 bảng kết quả và dựng file 7 trang song ngữ Việt - Hoa.<div style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(148,163,184,0.3);color:#fde68a"><b>步驟 3（四組 ➔ 報表工程師）：</b> 單一寫入 7 表雙語 Excel 與動態公式。</div>', '#8b5cf6');
+        showSpeech('orchestrator', 'Chị Lan ➔ Hệ Thống DCS_XNT', 'Chị gửi bảng tồn đúng đã chốt, em dựng hệ thống DCS_XNT theo đúng ý chị nhé!', '我把核對正確的庫存表給你，請依我的規則建置 DCS_XNT 系統！', 'Số Tồn Đúng (Chị Lan)', 0, 3200);
+        showSpeech('dcs-xnt-builder', 'Hệ Thống DCS_XNT', 'Rõ thưa chị! Em đang dựng hệ thống DCS_XNT cho Hải quan theo đúng số tồn của chị.', '收到！正依蘭姐的正確庫存與指示建置海關 DCS_XNT 系統。', 'Hệ Thống DCS_XNT', 850, 3200);
+        showSpeech('workbook-builder', 'Lập Sổ Excel', 'Em cũng đang hoàn thiện file 7 trang song ngữ Việt-Hoa bằng công thức động!', '我也正以動態公式編製 7 頁越中雙語報表！', 'Báo Cáo 7 Trang (.xlsx)', 1200, 3200);
+        addLog('<b>Bước 3 (Lập Sổ Excel & Hệ Thống DCS_XNT):</b> Chị Lan cấp số tồn đúng cho bộ phận <b>Hệ Thống DCS_XNT</b> dựng hệ thống cho Hải quan; đồng thời <b>Lập Sổ Excel</b> dựng file 7 trang.<div style="margin-top:4px;padding-top:4px;border-top:1px dashed rgba(148,163,184,0.3);color:#fde68a"><b>步驟 3（編製 Excel 與建置 DCS_XNT 系統）：</b> 蘭姐提供正確庫存由 DCS_XNT 建置海關系統，同時編製 7 表雙語報表。</div>', '#8b5cf6');
       } else if (phase === 4) {
         document.getElementById('sim-state-text').textContent = 'BƯỚC 4: KIỂM TRA CHÉO';
         setAgentState('workbook-builder', 'Đã đóng bản nháp', false);
+        setAgentState('dcs-xnt-builder', 'Đã xong DCS_XNT', false);
         setAgentState('logic-qa', 'Soát công thức', true);
         setAgentState('visual-qa', 'Soát trình bày', true);
         spawnPacket('forge->qa', 3);
