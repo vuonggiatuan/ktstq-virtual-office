@@ -703,12 +703,12 @@
     ];
 
     const ZONES = {
-      overview:  { pos: [0, 0.5, 0],       cam: [20.5, 16.5, 20.5] },
-      command:   { pos: [0, 1.0, -4.6],    cam: [6.5, 7.5, 3.5] },
-      vault:     { pos: [-7.2, 0.8, -1.6], cam: [-14, 7.5, 5.5] },
-      analytics: { pos: [-0.6, 0.6, 3.0],  cam: [-0.6, 8.5, 13.8] },
-      forge:     { pos: [7.2, 0.8, 0.2],   cam: [15.5, 7.5, 7] },
-      qa:        { pos: [6.1, 0.9, -4.0],  cam: [13, 8, -11.5] }
+      overview:  { pos: [0, 0.5, 0],       cam: [26, 21, 26] },
+      command:   { pos: [0, 1.0, -6.2],    cam: [7.5, 8.5, 3.5] },
+      vault:     { pos: [-9.2, 0.8, -1.8], cam: [-17, 8.5, 6.5] },
+      analytics: { pos: [-0.6, 0.6, 4.2],  cam: [-0.6, 9.5, 16.5] },
+      forge:     { pos: [8.8, 0.8, 1.8],   cam: [18.5, 8.5, 9.5] },
+      qa:        { pos: [7.5, 0.9, -5.6],  cam: [15.5, 9, -14] }
     };
 
     // =========================================================
@@ -725,15 +725,15 @@
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
 
-    const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 160);
-    camera.position.set(20.5, 16.5, 20.5);
+    const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 180);
+    camera.position.set(26, 21, 26);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.07;
     controls.maxPolarAngle = Math.PI / 2.15;
-    controls.minDistance = 7;
-    controls.maxDistance = 42;
+    controls.minDistance = 8;
+    controls.maxDistance = 56;
     controls.target.set(0, 0.5, 0);
 
     const hemiLight = new THREE.HemisphereLight(0xffffff, 0x475569, 1.25);
@@ -774,76 +774,87 @@
     scene.add(worldGroup);
 
     // =========================================================
-    // 3. KIẾN TRÚC VĂN PHÒNG CẮT LỚP CHI TIẾT CAO
+    // 3. KIẾN TRÚC VĂN PHÒNG RỘNG RÃI + HÀNH LANG ĐI LẠI RÕ RÀNG
     // =========================================================
-    const slabBase = new THREE.Mesh(new THREE.BoxGeometry(22.4, 0.65, 16.8), flatMat(0x334155));
+    const slabBase = new THREE.Mesh(new THREE.BoxGeometry(28.4, 0.65, 21.8), flatMat(0x334155));
     slabBase.position.y = -0.36;
     slabBase.receiveShadow = true;
     worldGroup.add(slabBase);
 
-    const woodFloor = new THREE.Mesh(new THREE.BoxGeometry(21.6, 0.08, 16.0), flatMat(0xe7d3b7, { roughness: 0.72 }));
+    const woodFloor = new THREE.Mesh(new THREE.BoxGeometry(27.6, 0.08, 21.0), flatMat(0xe7d3b7, { roughness: 0.72 }));
     woodFloor.position.y = -0.02;
     woodFloor.receiveShadow = true;
     worldGroup.add(woodFloor);
 
-    const floorGrid = new THREE.GridHelper(20.5, 20, 0xd6bfa0, 0xdec9aa);
+    const floorGrid = new THREE.GridHelper(26, 26, 0xd6bfa0, 0xdec9aa);
     floorGrid.position.y = 0.025;
     worldGroup.add(floorGrid);
 
-    // Tường Bắc có cửa sổ kính lớn & khung nhôm
-    const northWallBottom = new THREE.Mesh(new THREE.BoxGeometry(21.6, 1.1, 0.3), flatMat(0xf1f5f9));
-    northWallBottom.position.set(0, 0.55, -7.85);
+    // Lối đi hành lang chính (Walkway Corridors) để các nhân sự đi lại không vướng bàn
+    function addWalkway(x, z, w, d) {
+      const strip = new THREE.Mesh(new THREE.BoxGeometry(w, 0.03, d), flatMat(0xf1f5f9, { roughness: 0.85 }));
+      strip.position.set(x, 0.03, z);
+      strip.receiveShadow = true;
+      worldGroup.add(strip);
+    }
+    addWalkway(0, -1.0, 22.0, 1.85);   // Hành lang Đông-Tây chính
+    addWalkway(-4.2, 0.5, 1.85, 15.0); // Hành lang Bắc-Nam phía Tây
+    addWalkway(4.6, -0.5, 1.85, 15.0); // Hành lang Bắc-Nam phía Đông
+
+    // Tường Bắc rộng hơn
+    const northWallBottom = new THREE.Mesh(new THREE.BoxGeometry(27.6, 1.1, 0.3), flatMat(0xf1f5f9));
+    northWallBottom.position.set(0, 0.55, -10.35);
     northWallBottom.castShadow = true; northWallBottom.receiveShadow = true;
     worldGroup.add(northWallBottom);
 
-    const northWallTop = new THREE.Mesh(new THREE.BoxGeometry(21.6, 0.6, 0.3), flatMat(0xf1f5f9));
-    northWallTop.position.set(0, 3.25, -7.85);
+    const northWallTop = new THREE.Mesh(new THREE.BoxGeometry(27.6, 0.6, 0.3), flatMat(0xf1f5f9));
+    northWallTop.position.set(0, 3.25, -10.35);
     northWallTop.castShadow = true;
     worldGroup.add(northWallTop);
 
-    [-10.65, -4.5, 4.5, 10.65].forEach(wx => {
+    [-13.65, -5.5, 5.5, 13.65].forEach(wx => {
       const col = new THREE.Mesh(new THREE.BoxGeometry(0.45, 3.55, 0.35), flatMat(0xe2e8f0));
-      col.position.set(wx, 1.77, -7.85);
+      col.position.set(wx, 1.77, -10.35);
       col.castShadow = true;
       worldGroup.add(col);
     });
     const northGlass = new THREE.Mesh(
-      new THREE.BoxGeometry(20.8, 1.85, 0.08),
+      new THREE.BoxGeometry(26.8, 1.85, 0.08),
       flatMat(0xbae6fd, { transparent: true, opacity: 0.3, roughness: 0.08 })
     );
-    northGlass.position.set(0, 2.02, -7.85);
+    northGlass.position.set(0, 2.02, -10.35);
     worldGroup.add(northGlass);
 
-    // Biển hiệu công ty, Đồng hồ & Điều hòa
+    // Biển hiệu công ty, Đồng hồ & Điều hòa trên tường Bắc
     const signBoard = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.68, 0.12), flatMat(0x1e3a8a));
-    signBoard.position.set(0, 2.95, -7.65);
+    signBoard.position.set(0, 2.95, -10.15);
     worldGroup.add(signBoard);
     const signAccent = new THREE.Mesh(new THREE.BoxGeometry(4.0, 0.08, 0.14), flatMat(0x38bdf8, { emissive: 0x0ea5e9, emissiveIntensity: 0.45 }));
-    signAccent.position.set(0, 2.65, -7.65);
+    signAccent.position.set(0, 2.65, -10.15);
     worldGroup.add(signAccent);
 
     const clockFace = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.08, 16), flatMat(0xffffff));
     clockFace.rotation.x = Math.PI / 2;
-    clockFace.position.set(-4.5, 2.6, -7.62);
+    clockFace.position.set(-5.5, 2.6, -10.12);
     worldGroup.add(clockFace);
 
     const acUnit = new THREE.Mesh(new THREE.BoxGeometry(1.75, 0.42, 0.38), flatMat(0xffffff));
-    acUnit.position.set(4.5, 2.85, -7.5);
+    acUnit.position.set(5.5, 2.85, -10.0);
     acUnit.castShadow = true;
     worldGroup.add(acUnit);
 
-    // Tường Tây + Bảng Kanban + Cửa ra vào văn phòng
-    const westWall = new THREE.Mesh(new THREE.BoxGeometry(0.3, 3.55, 16.0), flatMat(0xe2e8f0));
-    westWall.position.set(-10.65, 1.77, 0);
+    // Tường Tây rộng hơn + Bảng Kanban
+    const westWall = new THREE.Mesh(new THREE.BoxGeometry(0.3, 3.55, 21.0), flatMat(0xe2e8f0));
+    westWall.position.set(-13.65, 1.77, 0);
     westWall.castShadow = true; westWall.receiveShadow = true;
     worldGroup.add(westWall);
 
     const kanban = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.4, 2.8), flatMat(0xffffff));
-    kanban.position.set(-10.45, 1.9, 1.6);
+    kanban.position.set(-13.45, 1.9, 1.6);
     worldGroup.add(kanban);
     [0x10b981, 0xf59e0b, 0x3b82f6, 0xef4444].forEach((c, i) => {
       const note = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.35, 0.42), flatMat(c));
-      note.position.set(-10.42, 2.15 - (i % 2) * 0.5, 0.8 + i * 0.55);
+      note.position.set(-13.42, 2.15 - (i % 2) * 0.5, 0.8 + i * 0.55);
       worldGroup.add(note);
     });
 
@@ -2122,19 +2133,19 @@
       };
     }
 
-    // Các điểm đi lại tự do trong hành lang & khu vực chung văn phòng
+    // Các điểm đi lại trên hành lang rõ ràng + tránh va chạm giữa các nhân vật
     let freeRoamEnabled = true;
     const OFFICE_WAYPOINTS = [
-      [-4.2, 0.08, -0.4],
-      [-1.0, 0.08, -0.8],
-      [0.4,  0.08, -1.8],
-      [4.5,  0.08, -0.6],
-      [-6.8, 0.08, -4.8], // Quầy Pantry cà phê
-      [-4.6, 0.08, -4.8], // Khu Sofa tiếp khách
-      [-8.2, 0.08,  1.2], // Tủ hồ sơ chứng từ
-      [4.8,  0.08,  4.4], // Giá treo áo mẫu
-      [-2.5, 0.08,  0.6], // Hành lang trung tâm
-      [5.5,  0.08,  1.8]  // Lối đi khu Excel / DCS_XNT
+      [-8.0, 0.08, -1.0],  // Hành lang Tây
+      [-4.2, 0.08, -1.0],  // Ngã tư Tây
+      [0.0,  0.08, -1.0],  // Hành lang Trung tâm
+      [4.6,  0.08, -1.0],  // Ngã tư Đông
+      [8.8,  0.08, -1.0],  // Hành lang Đông
+      [-4.2, 0.08, -5.2],  // Lối đi Sofa / Phòng Chị Lan
+      [-4.2, 0.08,  4.4],  // Hành lang Tây Nam
+      [4.6,  0.08,  4.4],  // Hành lang Đông Nam
+      [4.6,  0.08, -5.0],  // Lối đi Khu Kiểm Định
+      [-7.5, 0.08, -5.0]   // Khu Pantry cà phê
     ];
 
     const btnRoam = document.getElementById('btn-roam');
@@ -2185,10 +2196,26 @@
         const dist = Math.hypot(dx, dz);
         c.isMoving = dist > 0.08;
 
+        // Lực tách né nhau (Collision Avoidance) để 2 nhân vật không bao giờ đi xuyên qua nhau
+        let sepX = 0, sepZ = 0;
+        charMeshes.forEach(other => {
+          if (other === c) return;
+          const ox = c.group.position.x - other.group.position.x;
+          const oz = c.group.position.z - other.group.position.z;
+          const od = Math.hypot(ox, oz);
+          if (od > 0.001 && od < 1.35) {
+            const push = (1.35 - od) / 1.35;
+            sepX += (ox / od) * push * 1.8;
+            sepZ += (oz / od) * push * 1.8;
+          }
+        });
+
         if (c.isMoving) {
           const step = Math.min(dist, (c.working || !freeRoamEnabled ? 4.8 : 1.35) * dt);
-          c.group.position.x += (dx / dist) * step;
-          c.group.position.z += (dz / dist) * step;
+          const vx = (dx / dist) * step + sepX * dt;
+          const vz = (dz / dist) * step + sepZ * dt;
+          c.group.position.x += vx;
+          c.group.position.z += vz;
           c.group.position.y += (c.targetPos.y - c.group.position.y) * Math.min(1, dt * 6);
           const targetAngle = Math.atan2(dx, dz);
           let diff = targetAngle - c.group.rotation.y;
