@@ -331,16 +331,16 @@
 
     <div class="hud-card hud-actions">
       <div class="gates-badge" title="Số bước kiểm tra chất lượng đã đạt">
-        <span id="lbl-gates">Tiêu chuẩn</span>
+        <span id="lbl-gates">Chuẩn</span>
         <div class="gates-bar"><div class="gates-fill" id="gates-fill"></div></div>
         <span id="gates-count">0/11</span>
       </div>
-      <button class="btn btn-primary" id="btn-simulate">▶ Quy Trình 5 Bước</button>
-      <button class="btn" id="btn-history" style="border-color:#f59e0b;color:#fde68a">📜 Lịch Sử Dự Án (VI/繁中)</button>
-      <button class="btn" id="btn-step">Từng Bước</button>
-      <button class="btn" id="btn-lang">🌐 VI+繁中</button>
+      <button class="btn btn-primary" id="btn-simulate">▶ 5 Bước</button>
+      <button class="btn" id="btn-history" style="border-color:#f59e0b;color:#fde68a">📜 Lịch Sử (VI/繁中)</button>
+      <button class="btn" id="btn-step">Bước</button>
+      <button class="btn" id="btn-lang">🌐 VI+中</button>
       <button class="btn" id="btn-theme">🌙 Đêm</button>
-      <button class="btn" id="btn-reset">↺ Làm Lại</button>
+      <button class="btn" id="btn-reset">↺</button>
     </div>
   </div>
 
@@ -1566,9 +1566,9 @@
 
     const btnLang = document.getElementById('btn-lang');
     btnLang.addEventListener('click', () => {
-      if (langMode === 'bilingual') { langMode = 'vi'; btnLang.textContent = '🌐 Tiếng Việt'; }
-      else if (langMode === 'vi') { langMode = 'zh'; btnLang.textContent = '🌐 繁體中文'; }
-      else { langMode = 'bilingual'; btnLang.textContent = '🌐 VI+繁中'; }
+      if (langMode === 'bilingual') { langMode = 'vi'; btnLang.textContent = '🌐 VI'; }
+      else if (langMode === 'vi') { langMode = 'zh'; btnLang.textContent = '🌐 繁中'; }
+      else { langMode = 'bilingual'; btnLang.textContent = '🌐 VI+中'; }
     });
 
     document.getElementById('btn-reset').addEventListener('click', resetSim);
