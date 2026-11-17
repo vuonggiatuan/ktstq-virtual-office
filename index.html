@@ -440,8 +440,8 @@
       <div class="hud-card brand">
         <div class="brand-icon">XNK</div>
         <div>
-          <h1>Văn Phòng Ảo XNK — New Wide</h1>
-          <p>Chủ quản: Chị Lan • 10 Vị Trí Hải Quan & DCS_XNT</p>
+          <h1 id="ui-title">Văn Phòng Ảo XNK — New Wide</h1>
+          <p id="ui-subtitle">Chủ quản: Chị Lan • 10 Vị Trí Hải Quan & DCS_XNT</p>
         </div>
       </div>
 
@@ -476,33 +476,33 @@
   <div class="hud-bottom-left">
     <div class="hud-card">
       <div class="minimap-title">
-        <span>Sơ Đồ Văn Phòng XNK (3D)</span>
-        <span style="font-weight:500;color:#94a3b8">Kéo / Cuộn để xoay</span>
+        <span id="ui-map-title">Sơ Đồ Văn Phòng XNK (3D)</span>
+        <span id="ui-map-hint" style="font-weight:500;color:#94a3b8">Kéo / Cuộn để xoay</span>
       </div>
       <div class="zone-grid" id="zone-grid">
         <button class="zone-btn active" data-zone="overview">
-          <span class="zone-swatch" style="background:#94a3b8"></span>Toàn Cảnh Văn Phòng
+          <span class="zone-swatch" style="background:#94a3b8"></span><span class="z-lbl">Toàn Cảnh Văn Phòng</span>
         </button>
         <button class="zone-btn" data-zone="command">
-          <span class="zone-swatch" style="background:#6366f1"></span>Phòng Chị Lan
+          <span class="zone-swatch" style="background:#6366f1"></span><span class="z-lbl">Phòng Chị Lan</span>
         </button>
         <button class="zone-btn" data-zone="vault">
-          <span class="zone-swatch" style="background:#06b6d4"></span>Kho Số Liệu Gốc
+          <span class="zone-swatch" style="background:#06b6d4"></span><span class="z-lbl">Kho Số Liệu Gốc</span>
         </button>
         <button class="zone-btn" data-zone="analytics">
-          <span class="zone-swatch" style="background:#10b981"></span>Nhóm Đối Chiếu (4 Bàn)
+          <span class="zone-swatch" style="background:#10b981"></span><span class="z-lbl">Nhóm Đối Chiếu (4 Bàn)</span>
         </button>
         <button class="zone-btn" data-zone="forge">
-          <span class="zone-swatch" style="background:#8b5cf6"></span>Bàn Lập Sổ Excel
+          <span class="zone-swatch" style="background:#8b5cf6"></span><span class="z-lbl">Bàn Lập Sổ Excel</span>
         </button>
         <button class="zone-btn" data-zone="qa">
-          <span class="zone-swatch" style="background:#ec4899"></span>Bàn Kiểm Tra Cuối
+          <span class="zone-swatch" style="background:#ec4899"></span><span class="z-lbl">Bàn Kiểm Tra Cuối</span>
         </button>
       </div>
     </div>
 
     <div class="hud-card">
-      <div class="minimap-title"><span>10 Nhiệm Vụ Trong Văn Phòng</span></div>
+      <div class="minimap-title"><span id="ui-roster-title">10 Nhiệm Vụ Trong Văn Phòng</span></div>
       <div class="roster-strip" id="roster-strip"></div>
     </div>
   </div>
@@ -512,7 +512,7 @@
     <div class="hud-card" id="inspector-card"></div>
     <div class="hud-card">
       <div class="minimap-title">
-        <span>Diễn Biến Công Việc</span>
+        <span id="ui-log-title">Diễn Biến Công Việc</span>
         <span id="sim-state-text" style="color:#6ee7b7">CHỜ LỆNH</span>
       </div>
       <div class="log-list" id="log-list">
@@ -525,12 +525,12 @@
   <div class="chart-modal" id="chart-modal">
     <div class="chart-modal-head">
       <div>
-        <div style="font-size:15px;font-weight:800">📊 Biểu Đồ Tiến Độ Dự Án — Thuế Giảm Theo Đợt (VND) & Công Việc Subagent</div>
-        <div style="font-size:11px;color:#94a3b8;margin-top:2px">Số liệu tổng hợp thực tế từ 156 đợt xử lý (12/09/2026 – 26/10/2026) | 156 批次實務進度圖表</div>
+        <div id="ui-chart-modal-title" style="font-size:15px;font-weight:800">📊 Biểu Đồ Tiến Độ Dự Án — Thuế Giảm Theo Đợt (VND) & Công Việc Subagent</div>
+        <div id="ui-chart-modal-sub" style="font-size:11px;color:#94a3b8;margin-top:2px">Số liệu tổng hợp thực tế từ 156 đợt xử lý (12/09/2026 – 26/10/2026) | 156 批次實務進度圖表</div>
       </div>
       <div style="display:flex;align-items:center;gap:8px">
         <label style="font-size:11px;color:#cbd5e1;display:flex;align-items:center;gap:5px">
-          Tỷ giá (VND/USD):
+          <span id="ui-fx-label">Tỷ giá (VND/USD):</span>
           <input id="input-fx-rate" type="number" value="25400" step="100" min="1000" style="width:78px;padding:4px 6px;border-radius:6px;border:1px solid rgba(148,163,184,0.35);background:#0f172a;color:#fde68a;font-weight:700;font-size:11px" />
         </label>
         <button class="btn" id="btn-close-charts" style="border-color:#ef4444;color:#fecaca">✕ Đóng</button>
@@ -540,19 +540,19 @@
     <div class="chart-grid">
       <div class="chart-panel">
         <div class="chart-title">
-          <span>1. Timeline Lượng Thuế Giảm Theo Từng Đợt (VND)</span>
-          <span style="font-size:10px;color:#6ee7b7">Cột: từng đợt • Đường: lũy kế giảm</span>
+          <span id="ui-c1-title">1. Timeline Lượng Thuế Giảm Theo Từng Đợt (VND)</span>
+          <span id="ui-c1-sub" style="font-size:10px;color:#6ee7b7">Cột: từng đợt • Đường: lũy kế giảm</span>
         </div>
         <svg class="chart-svg" id="svg-tax-chart" viewBox="0 0 560 270"></svg>
         <div class="chart-legend">
-          <span class="legend-item"><span class="legend-dot" style="background:#10b981"></span>Thuế giảm từng đợt (VND)</span>
-          <span class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span>Tổng giảm lũy kế (VND)</span>
+          <span class="legend-item"><span class="legend-dot" style="background:#10b981"></span><span id="ui-c1-leg1">Thuế giảm từng đợt (VND)</span></span>
+          <span class="legend-item"><span class="legend-dot" style="background:#f59e0b"></span><span id="ui-c1-leg2">Tổng giảm lũy kế (VND)</span></span>
         </div>
       </div>
       <div class="chart-panel">
         <div class="chart-title">
-          <span>2. Lượng Công Việc Qua Thời Gian Của Các Subagent</span>
-          <span style="font-size:10px;color:#93c5fd">Số đợt xử lý theo từng ngày</span>
+          <span id="ui-c2-title">2. Lượng Công Việc Qua Thời Gian Của Các Subagent</span>
+          <span id="ui-c2-sub" style="font-size:10px;color:#93c5fd">Số đợt xử lý theo từng ngày</span>
         </div>
         <svg class="chart-svg" id="svg-workload-chart" viewBox="0 0 560 270"></svg>
         <div class="chart-legend" id="workload-legend"></div>
@@ -1739,28 +1739,30 @@
         p.classList.toggle('selected', p.dataset.char === id);
       });
 
-      const taskItems = cfg.tasks.map(t => `<li>${t}</li>`).join('');
+      const isZh = (typeof langMode !== 'undefined' && langMode === 'zh' && typeof CHAR_ZH !== 'undefined');
+      const d = (isZh && CHAR_ZH[id]) ? CHAR_ZH[id] : cfg;
+      const taskItems = d.tasks.map(t => `<li>${t}</li>`).join('');
       const card = document.getElementById('inspector-card');
       card.innerHTML = `
         <div class="char-header">
           <div class="char-avatar" style="background:${cfg.color}">${cfg.initials}</div>
           <div>
-            <div class="char-name">${cfg.name}</div>
-            <div class="char-sub">${cfg.role}</div>
+            <div class="char-name">${d.name}</div>
+            <div class="char-sub">${d.role}</div>
           </div>
         </div>
         <div class="tag-row">
-          <span class="tag" style="border:1px solid ${cfg.color};color:${cfg.accent}">${cfg.zoneLabel}</span>
-          <span class="tag">Hiện tại: ${entry.status}</span>
+          <span class="tag" style="border:1px solid ${cfg.color};color:${cfg.accent}">${d.zoneLabel}</span>
+          <span class="tag">${isZh ? '目前狀態' : 'Hiện tại'}: ${entry.status}</span>
         </div>
-        <div class="section-label">Nhiệm Vụ Chi Tiết Từng Bước</div>
+        <div class="section-label">${isZh ? '詳細工作步驟' : 'Nhiệm Vụ Chi Tiết Từng Bước'}</div>
         <ol class="task-list">${taskItems}</ol>
-        <div class="section-label">Nhận Hồ Sơ Từ</div>
-        <div class="info-box">${cfg.reads}</div>
-        <div class="section-label">Kết Quả Bàn Giao</div>
-        <div class="info-box">${cfg.writes}</div>
-        <div class="section-label">Nguyên Tắc An Toàn</div>
-        <div class="info-box restrict-box">${cfg.restrictions}</div>
+        <div class="section-label">${isZh ? '接收資料來源' : 'Nhận Hồ Sơ Từ'}</div>
+        <div class="info-box">${d.reads}</div>
+        <div class="section-label">${isZh ? '交付成果' : 'Kết Quả Bàn Giao'}</div>
+        <div class="info-box">${d.writes}</div>
+        <div class="section-label">${isZh ? '安全與作業規範' : 'Nguyên Tắc An Toàn'}</div>
+        <div class="info-box restrict-box">${d.restrictions}</div>
       `;
     }
     selectCharacter('orchestrator');
@@ -2247,22 +2249,23 @@
       const totalReducedVnd = cumUsd * fx;
 
       // KPI Cards
+      const isZh = langMode === 'zh';
       document.getElementById('chart-kpis').innerHTML = `
         <div class="kpi-box">
-          <div class="kpi-label">Tổng Số Đợt Xử Lý</div>
-          <div class="kpi-val">${data.length} đợt <span style="font-size:11px;color:#94a3b8">(Đợt 2–158)</span></div>
+          <div class="kpi-label">${isZh ? '總處理批次' : 'Tổng Số Đợt Xử Lý'}</div>
+          <div class="kpi-val">${data.length} ${isZh ? '批' : 'đợt'} <span style="font-size:11px;color:#94a3b8">(${isZh ? '第 2–158 批' : 'Đợt 2–158'})</span></div>
         </div>
         <div class="kpi-box">
-          <div class="kpi-label">Đợt Có Điều Chỉnh Thuế</div>
-          <div class="kpi-val" style="color:#38bdf8">${taxPoints.length} đợt</div>
+          <div class="kpi-label">${isZh ? '含稅差調整批次' : 'Đợt Có Điều Chỉnh Thuế'}</div>
+          <div class="kpi-val" style="color:#38bdf8">${taxPoints.length} ${isZh ? '批' : 'đợt'}</div>
         </div>
         <div class="kpi-box">
-          <div class="kpi-label">Tổng Thuế Giảm Lũy Kế</div>
+          <div class="kpi-label">${isZh ? '累計減稅金額' : 'Tổng Thuế Giảm Lũy Kế'}</div>
           <div class="kpi-val" style="color:#10b981">${fmtVndShort(totalReducedVnd)} VND</div>
           <div style="font-size:10px;color:#94a3b8;margin-top:2px">≈ $${Math.round(cumUsd).toLocaleString('en-US')} USD</div>
         </div>
         <div class="kpi-box">
-          <div class="kpi-label">Khoảng Thời Gian</div>
+          <div class="kpi-label">${isZh ? '作業期間' : 'Khoảng Thời Gian'}</div>
           <div class="kpi-val" style="font-size:14px;margin-top:6px">12/09/2026 – 26/10/2026</div>
         </div>
       `;
@@ -2318,11 +2321,11 @@
       const dates = [...new Set(data.map(d => d.dt).filter(Boolean))].sort();
       const agentKeys = ['import-analyst', 'usage-analyst', 'export-analyst', 'tax-analyst', 'data-extractor'];
       const agentMeta = {
-        'import-analyst': { label: 'Nhập Khẩu', color: '#3b82f6' },
-        'usage-analyst':  { label: 'Định Mức NPL', color: '#f59e0b' },
-        'export-analyst': { label: 'Xuất Khẩu', color: '#10b981' },
-        'tax-analyst':    { label: 'Thuế & NPL', color: '#ef4444' },
-        'data-extractor': { label: 'Kho Dữ Liệu', color: '#06b6d4' }
+        'import-analyst': { label: isZh ? '進口核對' : 'Nhập Khẩu', color: '#3b82f6' },
+        'usage-analyst':  { label: isZh ? '單耗 NPL' : 'Định Mức NPL', color: '#f59e0b' },
+        'export-analyst': { label: isZh ? '出口核對' : 'Xuất Khẩu', color: '#10b981' },
+        'tax-analyst':    { label: isZh ? '稅務 NPL' : 'Thuế & NPL', color: '#ef4444' },
+        'data-extractor': { label: isZh ? 'SQL 取數' : 'Kho Dữ Liệu', color: '#06b6d4' }
       };
 
       const byDate = dates.map(dt => {
@@ -2391,10 +2394,195 @@
     });
 
     const btnLang = document.getElementById('btn-lang');
+    const CHAR_ZH = {
+      'orchestrator': {
+        name: '蘭姐 — 主管總協調', short: '蘭姐 (主管)', role: '統籌整體流程、庫存基準與最終簽核', zoneLabel: '主管室',
+        reads: '公司查核日期需求、各部門彙總統計與雙重品管簽核單。',
+        writes: '各工作站派工計畫、獨立作業目錄與正式 Excel 核發簽署。',
+        restrictions: '僅蘭姐掌握系統最高連線權限；嚴禁外洩連線密碼，亦不可多人同時編輯同一份 Excel。',
+        tasks: ['確認查核區間並建立乾淨作業目錄。','指派 SQL 組一次性唯讀匯出原始快照並核對雜湊值。','並行指派四大領域核對（出口、進口、單耗、稅務）。','指定單一人員編製 Excel 並交付獨立品管覆核。','通過 11/11 項放行標準後正式簽核發布。']
+      },
+      'data-extractor': {
+        name: 'SQL 唯讀取數', short: 'SQL 取數', role: '從 DCS 與海關 ECUS 唯讀匯出並封存原始資料', zoneLabel: '系統資料庫',
+        reads: '廠內系統 (NW-DCS) 與海關系統 (ECUS5VNACCS) 唯讀資料。',
+        writes: '四大乾淨資料集（出口、進口、單耗、稅務）與雜湊封存清單。',
+        restrictions: '絕對唯讀模式 (Read-Only)，每輪僅執行一次匯出，嚴禁修改任何原始資料。',
+        tasks: ['依蘭姐指定日期區間安全匯出原始資料。','拆分為出口、進口、單耗與稅務四大獨立資料集。','統計各表筆數並產生 SHA-256 防竄改封存清單。','交付乾淨檔案路徑給各組，全程隔離資料庫連線密碼。']
+      },
+      'export-analyst': {
+        name: '出口數量核對', short: '出口核對', role: '比對廠內出貨量與海關出口報單數量', zoneLabel: '出口分析桌',
+        reads: '已封存的出口資料集與出口對帳規範。',
+        writes: '出口數量一致/差異彙總表與異常訂單清單。',
+        restrictions: '不可連線 SQL，不可直接修改總表 Excel，不可自行派發子任務。',
+        tasks: ['確認出口資料筆數與資料庫清單完全一致。','比對廠內出貨量與海關標準出口統計數量。','依優先順序分類：相符、數量差異 (>0.01)、缺廠內或缺海關資料。','整理差異最大的訂單交付報表編製組。']
+      },
+      'import-analyst': {
+        name: '進口報單核對', short: '進口核對', role: '比對原物料進倉量與海關進口報單', zoneLabel: '進口分析桌',
+        reads: '已封存的進口資料集與報單配對規則。',
+        writes: '進口數量差異彙總表與漏單預警清單。',
+        restrictions: '不可連線 SQL，不可修改 Excel；報單號碼須保留完整文字格式，禁止轉成科學記號。',
+        tasks: ['確認進口資料筆數與封存清單一致。','核對實際進倉原物料與海關進口報單申報量。','標記單向串接遺漏或計量單位不一致之明細。','完整保留海關報單字元並產出彙總結果。']
+      },
+      'usage-analyst': {
+        name: '單耗與單位核對', short: '單耗 NPL', role: '比對各款號之實際耗用與海關核銷單耗', zoneLabel: '單耗分析桌',
+        reads: '單耗資料集與標準計量單位對照表。',
+        writes: '單耗差異對比表與單位異常清單。',
+        restrictions: '僅於單位標準化一致時比對單耗（容差 0.000001）；缺乏依據時嚴禁自行推估換算係數。',
+        tasks: ['標準化單位寫法（如 MET/M、KGM/KG）。','比對實際與海關申報單耗（容許誤差 0.000001）。','獨立列出不同單位項目提醒覆核換算依據，不強行加總。','註記海關單耗版本限制以供報告揭露。']
+      },
+      'tax-analyst': {
+        name: 'NPL 稅差與風險', short: '稅務 NPL', role: '重算 10% 稅額差異並排序高風險 NPL', zoneLabel: '稅務分析桌',
+        reads: '稅率資料集、單價與原物料 (NPL) 清單。',
+        writes: 'NPL 稅差重算明細與高風險 NPL 排行榜。',
+        restrictions: '稅率缺漏不可自行估算；若單一 NPL 出現雙稅率須留白並標記「Mâu thuẫn thuế suất | 稅率衝突」。',
+        tasks: ['檢查去空白後的 NPL 料號唯一性。','依 10% VAT 公式重算稅額差異，誤差 <= 0.01。','缺漏或衝突稅率維持空白並明確標示。','依稅差絕對值由高至低排序高風險 NPL。']
+      },
+      'workbook-builder': {
+        name: '7 頁 Excel 編製', short: 'Excel 編製', role: '唯一有權產出與修改 .xlsx 報表之專員', zoneLabel: '報表製作桌',
+        reads: '四大原始資料集、四組驗證結果與報表規格。',
+        writes: '7 頁越中雙語 Excel 候選報表與預覽圖。',
+        restrictions: '唯一可寫入 Excel 的角色；所有差異、狀態與加總欄位須保留動態公式。',
+        tasks: ['建置 7 個越中雙語工作表（總覽、出口、進口、單耗、稅務明細、NPL 排行、來源限制）。','為所有計算欄位寫入動態公式並套用狀態色標。','設定標題凍結、篩選器與視覺化圖表。','依雙重品管回饋進行精準修正（最多 2 輪）。']
+      },
+      'dcs-xnt-builder': {
+        name: 'DCS_XNT 海關系統', short: 'DCS_XNT 系統', role: '依蘭姐核定正確庫存建置海關進出存系統', zoneLabel: 'DCS_XNT 開發區',
+        reads: '蘭姐核定的正確期初/期末庫存與海關樣式 15/16 規範。',
+        writes: '供海關查核之 DCS_XNT 進出存管理與查詢系統。',
+        restrictions: '須完全以蘭姐提供的正確庫存為基準，嚴禁自行推算或寫入海關原始系統。',
+        tasks: ['直接接收蘭姐核定的各料號正確庫存數據。','依蘭姐規則開發 DCS_XNT 進—出—存流程與介面。','清楚區分海關申報、廠內實盤與差異說明表。','依蘭姐回饋即時調整介面篩選與報表匯出。']
+      },
+      'logic-qa': {
+        name: '邏輯與公式品管', short: '邏輯品管', role: '獨立驗證公式、加總與 10% 稅差勾稽', zoneLabel: '邏輯品管桌',
+        reads: '候選 Excel、封存清單與四組分析結果。',
+        writes: '邏輯品管檢核報告 (通過 / 異常清單)。',
+        restrictions: '唯讀覆核，不可直接修改 Excel 檔案，確保審計獨立性。',
+        tasks: ['掃描全 7 頁確保無任何公式錯誤 (#REF!, #DIV/0! 等)。','核對總筆數、進出口加總與 NPL 排行 100% 勾稽。','驗證 10% 稅差 <= 0.01 且衝突稅率保持空白。','確認海關報單號維持完整字串不被科學記號截斷。']
+      },
+      'visual-qa': {
+        name: '版面與視覺品管', short: '視覺品管', role: '獨立檢視 7 頁雙語排版、篩選與圖表清晰度', zoneLabel: '視覺品管桌',
+        reads: '7 頁 Excel 預覽渲染圖與雙語排版規範。',
+        writes: '視覺品管檢核報告 (通過 / 版面修正清單)。',
+        restrictions: '唯讀覆核，不可直接調整 Excel 欄寬或色彩。',
+        tasks: ['檢視全部 7 頁越中雙語標題與整體排版。','排查文字裁切、### 溢位、框線缺漏或狀態色標錯誤。','確認大表均已開啟篩選器與凍結標題列。','確認 NPL 圖表與資料來源限制揭露清晰易讀。']
+      }
+    };
+
+    const UI_STR = {
+      vi: {
+        title: 'Văn Phòng Ảo XNK — New Wide',
+        sub: 'Chủ quản: Chị Lan • 10 Vị Trí Hải Quan & DCS_XNT',
+        phases: ['1. Lấy Số Liệu Gốc','2. Kiểm Tra 4 Mảng','3. Lập File Excel','4. Kiểm Tra Chéo','5. Bàn Giao'],
+        gates: 'Chuẩn',
+        bSim: '▶ 5 Bước', bHist: '📜 14 Bước', bBatch: '📋 156 Đợt', bChart: '📊 Biểu Đồ',
+        bStep: 'Tiếp', bRoamOn: '🚶 Đi Lại', bRoamOff: '🧍 Đứng Yên',
+        bNight: '🌙 Đêm', bDay: '☀ Ngày',
+        mapTitle: 'Sơ Đồ Văn Phòng XNK (3D)', mapHint: 'Kéo / Cuộn để xoay',
+        zones: ['Toàn Cảnh Văn Phòng','Phòng Chị Lan','Kho Số Liệu Gốc','Nhóm Đối Chiếu (4 Bàn)','Bàn Lập Sổ Excel','Bàn Kiểm Tra Cuối'],
+        zone3d: { command:'Phòng Chủ Quản (Chị Lan)', vault:'Kho Số Liệu Gốc', analytics:'Nhóm Đối Chiếu (4 Bàn Song Song)', forge:'Khu Lập Sổ & DCS_XNT', qa:'Bàn Kiểm Tra Cuối (2 Bước)' },
+        rosterTitle: '10 Nhiệm Vụ Trong Văn Phòng',
+        logTitle: 'Diễn Biến Công Việc',
+        waitStatus: 'Đang chờ',
+        chartTitle: '📊 Biểu Đồ Tiến Độ Dự Án — Thuế Giảm Theo Đợt (VND) & Công Việc Subagent',
+        chartSub: 'Số liệu tổng hợp thực tế từ 156 đợt xử lý (12/09/2026 – 26/10/2026)',
+        fxLabel: 'Tỷ giá (VND/USD):', closeBtn: '✕ Đóng',
+        c1Title: '1. Timeline Lượng Thuế Giảm Theo Từng Đợt (VND)', c1Sub: 'Cột: từng đợt • Đường: lũy kế giảm',
+        c1Leg1: 'Thuế giảm từng đợt (VND)', c1Leg2: 'Tổng giảm lũy kế (VND)',
+        c2Title: '2. Lượng Công Việc Qua Thời Gian Của Các Subagent', c2Sub: 'Số đợt xử lý theo từng ngày'
+      },
+      zh: {
+        title: '進出口虛擬辦公室 — New Wide',
+        sub: '主管：蘭姐 • 10 位海關稽核與 DCS_XNT 專員',
+        phases: ['1. 匯出原始資料','2. 四大領域核對','3. 編製 Excel','4. 交叉覆核','5. 簽核發布'],
+        gates: '標準',
+        bSim: '▶ 5步驟', bHist: '📜 14階段', bBatch: '📋 156批次', bChart: '📊 圖表',
+        bStep: '下一步', bRoamOn: '🚶 走動', bRoamOff: '🧍 待命',
+        bNight: '🌙 夜間', bDay: '☀ 日間',
+        mapTitle: '3D 辦公室平面圖', mapHint: '拖曳 / 滾輪縮放旋轉',
+        zones: ['全區總覽','蘭姐主管室','系統資料庫','四大稽核區 (4桌)','Excel 與 DCS_XNT','最終品管區'],
+        zone3d: { command:'主管室（蘭姐）', vault:'系統資料庫', analytics:'四大稽核區（4桌並行）', forge:'Excel 與 DCS_XNT 區', qa:'最終品管區（雙重覆核）' },
+        rosterTitle: '辦公室 10 項任務清單',
+        logTitle: '作業進度日誌',
+        waitStatus: '待命中',
+        chartTitle: '📊 專案進度圖表 — 批次減稅金額 (VND) 與專員工作量',
+        chartSub: '彙整自 156 批次實務作業紀錄（2026/09/12 – 2026/10/26）',
+        fxLabel: '匯率 (VND/USD)：', closeBtn: '✕ 關閉',
+        c1Title: '1. 各批次減稅金額時間軸 (VND)', c1Sub: '長條：單批減稅 • 折線：累計減稅',
+        c1Leg1: '單批減稅 (VND)', c1Leg2: '累計減稅 (VND)',
+        c2Title: '2. 各專員隨時間之工作量分布', c2Sub: '每日處理批次數量'
+      }
+    };
+
+    function applyUiLanguage() {
+      const isZh = langMode === 'zh';
+      const t = isZh ? UI_STR.zh : UI_STR.vi;
+
+      document.getElementById('ui-title').textContent = t.title;
+      document.getElementById('ui-subtitle').textContent = t.sub;
+      document.querySelectorAll('#pipeline-bar .phase-chip').forEach((el, i) => {
+        if (t.phases[i]) el.textContent = t.phases[i];
+      });
+      document.getElementById('lbl-gates').textContent = t.gates;
+      document.getElementById('btn-simulate').textContent = t.bSim;
+      document.getElementById('btn-history').textContent = t.bHist;
+      document.getElementById('btn-batches').textContent = t.bBatch;
+      document.getElementById('btn-charts').textContent = t.bChart;
+      document.getElementById('btn-step').textContent = t.bStep;
+      btnRoam.textContent = freeRoamEnabled ? t.bRoamOn : t.bRoamOff;
+      btnTheme.textContent = isNightMode ? t.bDay : t.bNight;
+
+      document.getElementById('ui-map-title').textContent = t.mapTitle;
+      document.getElementById('ui-map-hint').textContent = t.mapHint;
+      document.querySelectorAll('#zone-grid .z-lbl').forEach((el, i) => {
+        if (t.zones[i]) el.textContent = t.zones[i];
+      });
+      Object.entries(zoneLabelEls).forEach(([id, el]) => {
+        if (t.zone3d[id]) el.textContent = t.zone3d[id];
+      });
+
+      document.getElementById('ui-roster-title').textContent = t.rosterTitle;
+      document.getElementById('ui-log-title').textContent = t.logTitle;
+
+      // Update 3D character labels & roster pills
+      CHARACTERS.forEach(cfg => {
+        const zh = CHAR_ZH[cfg.id];
+        const lbl = labelEls[cfg.id];
+        if (lbl) {
+          const nameSpan = lbl.querySelector('span:nth-child(2)');
+          if (nameSpan) nameSpan.textContent = isZh && zh ? zh.name : cfg.name;
+          const pill = document.getElementById(`pill-${cfg.id}`);
+          if (pill && (pill.textContent === 'Đang chờ' || pill.textContent === '待命中')) {
+            pill.textContent = t.waitStatus;
+            charMap[cfg.id].status = t.waitStatus;
+          }
+        }
+        const rBtn = rosterStrip.querySelector(`[data-char="${cfg.id}"]`);
+        if (rBtn) {
+          const dot = rBtn.querySelector('span').outerHTML;
+          rBtn.innerHTML = `${dot}${isZh && zh ? zh.short : cfg.shortLabel}`;
+        }
+      });
+
+      // Update Chart Modal texts
+      document.getElementById('ui-chart-modal-title').textContent = t.chartTitle;
+      document.getElementById('ui-chart-modal-sub').textContent = t.chartSub;
+      document.getElementById('ui-fx-label').textContent = t.fxLabel;
+      document.getElementById('btn-close-charts').textContent = t.closeBtn;
+      document.getElementById('ui-c1-title').textContent = t.c1Title;
+      document.getElementById('ui-c1-sub').textContent = t.c1Sub;
+      document.getElementById('ui-c1-leg1').textContent = t.c1Leg1;
+      document.getElementById('ui-c1-leg2').textContent = t.c1Leg2;
+      document.getElementById('ui-c2-title').textContent = t.c2Title;
+      document.getElementById('ui-c2-sub').textContent = t.c2Sub;
+
+      selectCharacter(selectedCharId);
+      if (chartModal.classList.contains('open') && batchData) renderCharts(batchData);
+    }
+
     btnLang.addEventListener('click', () => {
-      if (langMode === 'bilingual') { langMode = 'vi'; btnLang.textContent = '🌐 VI'; }
-      else if (langMode === 'vi') { langMode = 'zh'; btnLang.textContent = '🌐 繁中'; }
+      if (langMode === 'bilingual') { langMode = 'zh'; btnLang.textContent = '🌐 繁體中文'; }
+      else if (langMode === 'zh') { langMode = 'vi'; btnLang.textContent = '🌐 Tiếng Việt'; }
       else { langMode = 'bilingual'; btnLang.textContent = '🌐 VI+中'; }
+      applyUiLanguage();
     });
 
     document.getElementById('btn-reset').addEventListener('click', resetSim);
