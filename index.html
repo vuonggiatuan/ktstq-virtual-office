@@ -1225,6 +1225,57 @@
     addOfficePlant(9.5, -6.4);
     addOfficePlant(-3.4, -6.8);
 
+    // L) Khu Sofa Tiếp Khách & Bàn Trà Cạnh Cửa Ra Vào
+    const sofaGroup = new THREE.Group();
+    const sofaSeat = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.34, 0.78), flatMat(0x1e3a8a));
+    sofaSeat.position.y = 0.25;
+    sofaSeat.castShadow = true;
+    sofaGroup.add(sofaSeat);
+    const sofaBack = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.5, 0.18), flatMat(0x1d4ed8));
+    sofaBack.position.set(0, 0.62, -0.3);
+    sofaBack.castShadow = true;
+    sofaGroup.add(sofaBack);
+    [-0.9, 0.9].forEach(ax => {
+      const arm = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.44, 0.78), flatMat(0x1d4ed8));
+      arm.position.set(ax, 0.42, 0);
+      sofaGroup.add(arm);
+    });
+    sofaGroup.position.set(-4.6, 0, -6.8);
+    worldGroup.add(sofaGroup);
+
+    const coffeeTbl = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.06, 0.55), flatMat(0xe2e8f0));
+    coffeeTbl.position.set(-4.6, 0.36, -5.85);
+    coffeeTbl.castShadow = true;
+    worldGroup.add(coffeeTbl);
+
+    // M) TV Bảng KPI Lớn Trên Tường Bắc (Khu Kiểm Định)
+    const kpiTv = new THREE.Mesh(new THREE.BoxGeometry(2.8, 1.35, 0.1), flatMat(0x0f172a));
+    kpiTv.position.set(7.2, 2.05, -7.62);
+    worldGroup.add(kpiTv);
+    [0x10b981, 0x3b82f6, 0xf59e0b, 0xec4899].forEach((bc, i) => {
+      const bar = new THREE.Mesh(
+        new THREE.BoxGeometry(0.32, 0.45 + (i % 3) * 0.2, 0.04),
+        flatMat(bc, { emissive: bc, emissiveIntensity: 0.6 })
+      );
+      bar.position.set(6.45 + i * 0.5, 1.85 + ((i % 3) * 0.1), -7.55);
+      worldGroup.add(bar);
+    });
+
+    // N) Bảng Trắng Di Động Có Chân Cạnh Bàn Họp
+    const wbGroup = new THREE.Group();
+    [-0.65, 0.65].forEach(lx => {
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.7, 6), flatMat(0x475569));
+      leg.position.set(lx, 0.85, 0);
+      wbGroup.add(leg);
+    });
+    const wbPanel = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.95, 0.06), flatMat(0xffffff));
+    wbPanel.position.y = 1.35;
+    wbPanel.castShadow = true;
+    wbGroup.add(wbPanel);
+    wbGroup.position.set(4.1, 0, -1.2);
+    wbGroup.rotation.y = -Math.PI / 3;
+    worldGroup.add(wbGroup);
+
     // =========================================================
     // 5. NHÂN VẬT 3D CHI TIẾT
     // =========================================================
@@ -1251,10 +1302,14 @@
       group.add(bodyGroup);
 
       [-0.1, 0.1].forEach(lx => {
-        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.42, 0.16), flatMat(0x1e293b));
-        leg.position.set(lx, 0.25, 0);
+        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.4, 0.16), flatMat(0x1e293b));
+        leg.position.set(lx, 0.26, 0);
         leg.castShadow = true;
         bodyGroup.add(leg);
+        // Giày công sở
+        const shoe = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.08, 0.22), flatMat(0x0f172a));
+        shoe.position.set(lx, 0.05, 0.03);
+        bodyGroup.add(shoe);
       });
 
       const torso = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.5, 0.24), flatMat(cMain));
@@ -1262,24 +1317,56 @@
       torso.castShadow = true;
       bodyGroup.add(torso);
 
-      const collar = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.08, 0.25), flatMat(0xffffff));
+      const collar = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.09, 0.25), flatMat(0xffffff));
       collar.position.set(0, 0.92, 0.01);
       bodyGroup.add(collar);
 
-      const leftArm = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.42, 0.13), flatMat(cMain));
-      leftArm.position.set(-0.29, 0.72, 0.05);
-      leftArm.castShadow = true;
+      // Thẻ nhân viên đeo trước ngực
+      const badge = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.13, 0.02), flatMat(0xf8fafc));
+      badge.position.set(0.11, 0.75, 0.13);
+      bodyGroup.add(badge);
+
+      // Tay áo + bàn tay màu da
+      const leftArm = new THREE.Group();
+      leftArm.position.set(-0.29, 0.88, 0.02);
+      const lSleeve = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.34, 0.13), flatMat(cMain));
+      lSleeve.position.y = -0.15;
+      lSleeve.castShadow = true;
+      leftArm.add(lSleeve);
+      const lHand = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), flatMat(0xfde68a));
+      lHand.position.y = -0.35;
+      leftArm.add(lHand);
       bodyGroup.add(leftArm);
 
-      const rightArm = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.42, 0.13), flatMat(cMain));
-      rightArm.position.set(0.29, 0.72, 0.05);
-      rightArm.castShadow = true;
+      const rightArm = new THREE.Group();
+      rightArm.position.set(0.29, 0.88, 0.02);
+      const rSleeve = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.34, 0.13), flatMat(cMain));
+      rSleeve.position.y = -0.15;
+      rSleeve.castShadow = true;
+      rightArm.add(rSleeve);
+      const rHand = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.1, 0.1), flatMat(0xfde68a));
+      rHand.position.y = -0.35;
+      rightArm.add(rHand);
       bodyGroup.add(rightArm);
 
       const head = new THREE.Mesh(new THREE.IcosahedronGeometry(0.22, 1), flatMat(0xfde68a));
       head.position.y = 1.18;
       head.castShadow = true;
       bodyGroup.add(head);
+
+      // Hai mắt nhỏ
+      [-0.07, 0.07].forEach(ex => {
+        const eye = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.035, 0.03), flatMat(0x0f172a));
+        eye.position.set(ex, 1.19, 0.21);
+        bodyGroup.add(eye);
+      });
+
+      // Kính mắt cho Quản lý, Thuế & Kiểm định
+      if (['orchestrator', 'tax-analyst', 'logic-qa'].includes(cfg.id)) {
+        const glasses = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.06, 0.04), flatMat(0x1e293b));
+        glasses.position.set(0, 1.19, 0.22);
+        bodyGroup.add(glasses);
+      }
 
       const hair = new THREE.Mesh(
         new THREE.BoxGeometry(0.44, cfg.female ? 0.34 : 0.18, 0.42),
@@ -1288,6 +1375,13 @@
       hair.position.set(0, cfg.female ? 1.24 : 1.32, -0.04);
       hair.castShadow = true;
       bodyGroup.add(hair);
+
+      // Búi tóc sau cho nhân viên nữ
+      if (cfg.female) {
+        const bun = new THREE.Mesh(new THREE.DodecahedronGeometry(0.12, 0), flatMat(cfg.hairColor));
+        bun.position.set(0, 1.25, -0.26);
+        bodyGroup.add(bun);
+      }
 
       const gem = new THREE.Mesh(
         new THREE.OctahedronGeometry(0.11, 0),
