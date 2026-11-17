@@ -1436,74 +1436,158 @@
 
     const HISTORY_SCENARIO = [
       {
-        stage: '1/7 • 07/2023 – 09/2026',
-        phase: 1,
-        gates: 2,
-        route: 'vault->command',
-        active: ['orchestrator', 'data-extractor'],
-        done: [],
-        vi: '<b>Giai đoạn 1 — Khóa phạm vi & Nguồn gốc:</b> Chị Lan chốt phạm vi kiểm toán 01/07/2023–30/09/2026. Bộ phận SQL khóa snapshot 11.962 dòng tờ khai & 255.346 dòng nhập kho (Read-Only, tuyệt đối không sửa ECUS5VNACCS).',
-        zh: '<b>階段 1 — 鎖定查核範圍與原始資料：</b> 蘭姐確認查核區間 2023/07/01–2026/09/30。SQL 取數組以唯讀模式凍結 11,962 筆報單與 255,346 筆入庫資料（絕不修改 ECUS5VNACCS）。'
+        stage: '1/14 • Khởi Động & Khóa Nguồn',
+        phase: 1, gates: 1, route: 'vault->command',
+        active: ['orchestrator', 'data-extractor'], done: [],
+        talk: [
+          ['orchestrator', 'Chị Lan ➔ Kho SQL', 'Chốt phạm vi 01/07/2023–30/09/2026. Khóa snapshot Read-Only nhé!', '鎖定 2023/07/01–2026/09/30，請唯讀匯出快照！', 'Phạm vi 3 năm', 0],
+          ['data-extractor', 'Kho SQL ➔ Chị Lan', 'Đã khóa 11.962 dòng tờ khai & 255.346 dòng nhập kho!', '已封存 11,962 筆報單與 255,346 筆入庫資料！', 'snapshot-manifest.json', 850]
+        ],
+        vi: '<b>Giai đoạn 1/14 — Khởi động & Khóa nguồn gốc:</b> Chị Lan chốt phạm vi 01/07/2023–30/09/2026; Kho SQL đóng băng 11.962 tờ khai & 255.346 dòng nhập kho (Read-Only).',
+        zh: '<b>階段 1/14 — 啟動與鎖定原始資料：</b> 蘭姐確認 2023/07/01–2026/09/30 範圍；SQL 組唯讀封存 11,962 報單與 255,346 入庫流水。'
       },
       {
-        stage: '2/7 • ĐVT, Khổ & Đổi mã',
-        phase: 2,
-        gates: 4,
-        route: 'command->analytics',
-        active: ['import-analyst', 'usage-analyst'],
-        done: ['data-extractor'],
-        vi: '<b>Giai đoạn 2 — Tách Đơn vị tính & Đổi mã:</b> Phát hiện 7 nhóm tờ khai đa đơn vị (MET/YD/KG) và 273 dòng phiếu đổi mã ảnh hưởng 818 dòng luân chuyển. Tách khổ từng dòng, giữ nguyên các dòng thiếu cơ sở.',
-        zh: '<b>階段 2 — 拆解計量單位與料號變更：</b> 盤點出 7 組多單位報單（MET/YD/KG）及 273 筆換碼異動（影響 818 筆流水）。改採逐筆幅寬換算，缺乏依據者保留不推估。'
+        stage: '2/14 • Batch 2–20 (Mapping)',
+        phase: 2, gates: 2, route: 'command->analytics',
+        active: ['import-analyst', 'tax-analyst'], done: ['data-extractor'],
+        talk: [
+          ['import-analyst', 'Nhập Khẩu ➔ Thuế NPL', 'Batch 2–20 (12/09): Đang xử lý 1.802 dòng GroupA trên DCS_Wa_Sub!', 'Batch 2–20（9/12）：正修復 DCS_Wa_Sub 1,802 筆 GroupA 映射！', 'Batch 2–20 (1.802 dòng)', 0],
+          ['tax-analyst', 'Thuế NPL ➔ Chị Lan', 'Đã dựng mô hình đối chiếu DCS & bảng đo thuế chuẩn.', '已建立 DCS 對帳模型與稅額基準測量！', 'DCS Recon Model', 850]
+        ],
+        vi: '<b>Giai đoạn 2/14 — Batch 2–20 (12/09/2026):</b> Khởi chạy các batch đầu tiên sửa mapping <code>DCS_Wa_Sub</code> (1.802 dòng GroupA) và dựng mô hình đối chiếu DCS.',
+        zh: '<b>階段 2/14 — Batch 2–20（2026/09/12）：</b> 執行首批修復 <code>DCS_Wa_Sub</code> 1,802 筆 GroupA 映射，並建立 DCS 對帳基準模型。'
       },
       {
-        stage: '3/7 • Đơn hàng & Định mức',
-        phase: 2,
-        gates: 6,
-        route: 'command->analytics',
-        active: ['export-analyst', 'usage-analyst'],
-        done: ['data-extractor', 'import-analyst'],
-        vi: '<b>Giai đoạn 3 — Truy vết Đơn hàng & Định mức:</b> Truy vết đơn SF2604036-A (6 tờ khai E52, 6.338 PCE), tách 75 dòng OUT (SBKAI3-M), kiểm 6 file XLS (3.775 dòng), bỏ kiểu lấy định mức dòng đầu tiên.',
-        zh: '<b>階段 3 — 訂單與實際單耗追溯：</b> 追蹤 SF2604036-A（6 份 E52 報單、6,338 PCE），解析 75 筆 OUT（SBKAI3-M）並核對 6 份 XLS（3,775 筆），禁用舊版首筆單耗預設邏輯。'
+        stage: '3/14 • Batch 21–50 (ĐVT & Khổ)',
+        phase: 2, gates: 3, route: 'command->analytics',
+        active: ['usage-analyst', 'export-analyst'], done: ['data-extractor', 'import-analyst'],
+        talk: [
+          ['usage-analyst', 'Định Mức ➔ Xuất Khẩu', 'Batch 21–50 (15–17/09): Đã sửa SP_Convert_Unit & tách khổ từng dòng!', 'Batch 21–50（9/15–17）：已修復 SP_Convert_Unit 並逐筆拆幅寬！', 'SP_Convert_Unit + Trim', 0],
+          ['export-analyst', 'Xuất Khẩu ➔ Chị Lan', 'Đã đồng bộ hàm Import/Export & CUS_Usage theo đơn hàng.', '已同步進出口統計函數與訂單 CUS_Usage！', 'Sync CUS_Usage', 850]
+        ],
+        vi: '<b>Giai đoạn 3/14 — Batch 21–50 (15–17/09/2026):</b> Sửa <code>SP_Convert_Unit</code>, hàm <code>Trim</code>, tách khổ từng dòng vải và đồng bộ <code>CUS_Usage</code>.',
+        zh: '<b>階段 3/14 — Batch 21–50（2026/09/15–17）：</b> 修復 <code>SP_Convert_Unit</code> 與去空白函數，改採逐筆幅寬換算並同步 <code>CUS_Usage</code>。'
       },
       {
-        stage: '4/7 • Tồn đầu 2023 & BCQT',
-        phase: 3,
-        gates: 7,
-        route: 'analytics->forge',
-        active: ['workbook-builder', 'export-analyst'],
-        done: ['data-extractor', 'import-analyst', 'usage-analyst'],
-        vi: '<b>Giai đoạn 4 — Cầu nối Tồn đầu 2023 & BCQT:</b> Dựng cầu nối 2023–2026 (143 khóa năm, 83 khóa tháng 6). Tách bạch BCQT đã nộp, BCQT tính lại & tồn kho thực tế; bản run11 đạt 0 chênh chuyển năm trên khóa ghép được.',
-        zh: '<b>階段 4 — 2023 期初餘額與 BCQT 年結橋接：</b> 建立 2023–2026 年結橋接（143 組年度鍵值、83 組六月鍵值），嚴格區分已申報與重算 BCQT，run11 可配對鍵值跨年差異為 0。'
+        stage: '4/14 • Sự Cố 17/09 & Guard SQL',
+        phase: 1, gates: 4, route: 'vault->command',
+        active: ['orchestrator', 'data-extractor'], done: [],
+        talk: [
+          ['data-extractor', 'Kho SQL ➔ Chị Lan', 'Cảnh báo 17/09 (14:31): Có script ghi nhầm vào ECUS5VNACCS! Đang rollback!', '9/17 警報（14:31）：偵測誤寫入 ECUS5VNACCS，已於一小時內回滾！', 'Rollback ECUS < 1h', 0],
+          ['orchestrator', 'Chị Lan ➔ Toàn Phòng', 'Từ nay khóa cứng agent.db.guard_sql: ECUS5VNACCS vĩnh viễn Read-Only!', '即日起鎖死 agent.db.guard_sql：ECUS5VNACCS 永久唯讀！', 'guard_sql LOCKED', 850]
+        ],
+        vi: '<b>Giai đoạn 4/14 — Sự cố 17/09 & Khóa <code>guard_sql</code>:</b> Khi có script ghi nhầm vào <code>ECUS5VNACCS</code> (14:31–14:46), hệ thống rollback trong 1 giờ và khóa cứng <code>agent.db.guard_sql</code>.',
+        zh: '<b>階段 4/14 — 9/17 ECUS 事件與鎖定 <code>guard_sql</code>：</b> 誤寫入 <code>ECUS5VNACCS</code> 當小時內即完成回滾，並永久啟用 <code>agent.db.guard_sql</code> 唯讀防護。'
       },
       {
-        stage: '5/7 • Thuế NPL & Pháp lý',
-        phase: 3,
-        gates: 8,
-        route: 'analytics->forge',
-        active: ['tax-analyst', 'workbook-builder'],
-        done: ['data-extractor', 'import-analyst', 'usage-analyst', 'export-analyst'],
-        vi: '<b>Giai đoạn 5 — Thuế NPL & Mốc Pháp lý:</b> Tính lại thuế 10% (ECUS_TaxCaculate), gắn cờ "Mâu thuẫn thuế suất | 稅率衝突" khi có 2 thuế suất, phân tuyến mốc Luật 90/2025, NĐ 167/2025, TT 121/2025.',
-        zh: '<b>階段 5 — NPL 稅差與法規時效分流：</b> 依 ECUS_TaxCaculate 重算 10% 稅差，雙稅率標記「稅率衝突」，並區分第 90/2025 號法、167/2025 號議定與 121/2025 號通告生效日。'
+        stage: '5/14 • Batch 51–91 & Sổ Cái',
+        phase: 2, gates: 5, route: 'analytics->forge',
+        active: ['tax-analyst', 'workbook-builder'], done: ['data-extractor'],
+        talk: [
+          ['tax-analyst', 'Thuế NPL ➔ Lập Sổ', 'Batch 51–91: Mọi batch đều phải Đo trước ➔ Backup BK_ ➔ Dry-run ➔ Commit!', 'Batch 51–91：每批皆須先測稅額 ➔ 備份 BK_ ➔ 試跑 ➔ 單交易提交！', '6 Bước Chuẩn + BK_', 0],
+          ['workbook-builder', 'Lập Sổ ➔ Chị Lan', 'Đã ghi đầy đủ vào sổ cái append-only remediation_ledger.csv!', '已完整登錄至不可變稽核帳本 remediation_ledger.csv！', 'remediation_ledger.csv', 850]
+        ],
+        vi: '<b>Giai đoạn 5/14 — Batch 51–91 & Sổ cái <code>remediation_ledger.csv</code>:</b> Áp dụng chuẩn 6 bước bắt buộc (<code>measure_tax</code> → Backup <code>BK_*</code> → Dry-run → Commit → Ghi Ledger → Đo lại).',
+        zh: '<b>階段 5/14 — Batch 51–91 與帳本 <code>remediation_ledger.csv</code>：</b> 落實六步驟規範（事前測量 → <code>BK_*</code> 備份 → 試跑 → 提交 → 登錄帳本 → 複測）。'
       },
       {
-        stage: '6/7 • Chứng từ Scan & Vận tải',
-        phase: 4,
-        gates: 10,
-        route: 'forge->qa',
-        active: ['logic-qa', 'visual-qa'],
-        done: ['workbook-builder', 'tax-analyst'],
-        vi: '<b>Giai đoạn 6 — Đối chiếu Chứng từ Scan thực tế:</b> Kiểm tra 7 trang PDF scan 25102026: khớp 2 header E52 (308849150910, 308849504260) & hóa đơn vận tải 111 (7.462.800 VND trên CN2608104 & DV2608105).',
-        zh: '<b>階段 6 — 實體掃描單證與運費核對：</b> 比對 7 頁掃描 PDF：兩筆 E52 報單（308849150910、308849504260）與運費發票 111（7,462,800 VND 對應 CN2608104 / DV2608105）完全吻合。'
+        stage: '6/14 • Batch 92–125 (Tồn 2023)',
+        phase: 2, gates: 6, route: 'command->analytics',
+        active: ['import-analyst', 'export-analyst'], done: ['data-extractor', 'tax-analyst'],
+        talk: [
+          ['import-analyst', 'Nhập Khẩu ➔ Xuất Khẩu', 'Batch 92–125: Đã lọc 273 dòng đổi mã ảnh hưởng 818 dòng luân chuyển!', 'Batch 92–125：已梳理 273 筆換碼異動（影響 818 筆流水）！', '818 dòng đổi mã', 0],
+          ['export-analyst', 'Xuất Khẩu ➔ Chị Lan', 'Cầu nối 2023–2026 xong 143 khóa năm & 83 khóa tháng 6!', '2023–2026 橋接完成 143 年度鍵值與 83 六月鍵值！', '143 khóa năm', 850]
+        ],
+        vi: '<b>Giai đoạn 6/14 — Batch 92–125 (Cầu nối 2023–2026):</b> Rà soát 273 dòng đổi mã (818 dòng luân chuyển) và dựng cầu nối tồn đầu 2023 (143 khóa năm, 83 khóa tháng 6).',
+        zh: '<b>階段 6/14 — Batch 92–125（2023–2026 橋接）：</b> 梳理 273 筆換碼（818 筆流水）並建立 2023 期初餘額橋接（143 年度鍵值、83 六月鍵值）。'
       },
       {
-        stage: '7/7 • Kiểm toán 49/49 Tests',
-        phase: 5,
-        gates: 11,
-        route: 'qa->command',
-        active: [],
-        done: ['orchestrator', 'logic-qa', 'visual-qa'],
-        vi: '<b>Giai đoạn 7 — Hoàn tất & Kiểm chứng (49/49 Tests):</b> Chạy verify_ktstq.py đạt 49/49 bài kiểm thử, 140 mã hash nguồn/đầu ra nguyên vẹn, đồng bộ 3 bộ skill & Văn phòng ảo. Chị Lan ký tổng hợp hồ sơ!',
-        zh: '<b>階段 7 — 結案驗證（49/49 項測試通過）：</b> 執行 verify_ktstq.py 通過 49/49 項測試、140 筆雜湊值零異動，並完成 3 套 Skill 與 3D 虛擬辦公室同步，蘭姐簽核備查！'
+        stage: '7/14 • Batch 126–155 (75 OUT)',
+        phase: 2, gates: 7, route: 'command->analytics',
+        active: ['usage-analyst', 'export-analyst'], done: ['import-analyst'],
+        talk: [
+          ['usage-analyst', 'Định Mức ➔ Xuất Khẩu', 'Batch 126–155: Tách 7 nhóm đa ĐVT & kiểm 6 file XLS (3.775 dòng)!', 'Batch 126–155：拆解 7 組多單位報單並核對 6 份 XLS（3,775 筆）！', '3.775 dòng XLS', 0],
+          ['export-analyst', 'Xuất Khẩu ➔ Lập Sổ', 'Truy xong 75 dòng OUT (SBKAI3-M) & 6.338 PCE đơn SF2604036-A!', '完成 75 筆 OUT（SBKAI3-M）與 SF2604036-A（6,338 PCE）追溯！', '75 OUT + 6.338 PCE', 850]
+        ],
+        vi: '<b>Giai đoạn 7/14 — Batch 126–155 (Đa đơn vị & 75 OUT):</b> Xử lý 7 nhóm tờ khai đa ĐVT, 6 file XLS (3.775 dòng), truy vết 75 OUT (<code>SBKAI3-M</code>) & đơn <code>SF2604036-A</code>.',
+        zh: '<b>階段 7/14 — Batch 126–155（多單位與 75 筆 OUT）：</b> 處理 7 組多單位報單、6 份 XLS（3,775 筆）並追溯 75 筆 OUT（<code>SBKAI3-M</code>）。'
+      },
+      {
+        stage: '8/14 • Batch 156 (NPL004)',
+        phase: 3, gates: 7, route: 'analytics->forge',
+        active: ['import-analyst', 'workbook-builder'], done: ['usage-analyst'],
+        talk: [
+          ['import-analyst', 'Nhập Khẩu ➔ Lập Sổ', 'Batch 156 (26/10): Chuyển 18 dòng nhãn dệt PR-004 từ NPL005 ➔ NPL004!', 'Batch 156（10/26）：將 18 筆織標 PR-004 由 NPL005 正名為 NPL004！', '18 dòng NPL005➔004', 0],
+          ['workbook-builder', 'Lập Sổ Excel', 'Đã đối chiếu 44 dòng lịch sử trước 2026 & lưu backup BK_Batch156!', '已比對 2026 前 44 筆歷史紀錄並完成 BK_Batch156 備份！', 'BK_20261026_Batch156', 850]
+        ],
+        vi: '<b>Giai đoạn 8/14 — Batch 156 (26/10/2026):</b> Chuẩn hóa 18 dòng <code>PR-004 Woven Size Label</code> từ <code>NPL005 → NPL004</code> dựa trên 44 dòng lịch sử khớp tên.',
+        zh: '<b>階段 8/14 — Batch 156（2026/10/26）：</b> 依 44 筆歷史同名紀錄，將 18 筆 <code>PR-004</code> 織標由 <code>NPL005</code> 歸正為 <code>NPL004</code>。'
+      },
+      {
+        stage: '9/14 • Batch 157 (NPL212/158)',
+        phase: 3, gates: 8, route: 'analytics->forge',
+        active: ['usage-analyst', 'workbook-builder'], done: ['import-analyst'],
+        talk: [
+          ['usage-analyst', 'Định Mức ➔ Lập Sổ', 'Batch 157 (26/10): Đồng bộ 16 định mức đã duyệt NPL212 & NPL158!', 'Batch 157（10/26）：同步 16 筆核准單耗（NPL212 與 NPL158）！', '16 dòng CUS_Usage', 0],
+          ['workbook-builder', 'Lập Sổ ➔ Chị Lan', 'Đã xử lý xong khoản âm xuất -441.602,08 MTK trên NPL212!', '已消除 NPL212 出口負數差異 -441,602.08 MTK！', 'Fix -441.602 MTK', 850]
+        ],
+        vi: '<b>Giai đoạn 9/14 — Batch 157 (26/10/2026):</b> Đồng bộ 16 định mức đã duyệt (<code>GC_DDINHMUC TrangThai=2</code>) cho <code>NPL212</code> & <code>NPL158</code>, giải quyết âm <code>-441.602,08 MTK</code>.',
+        zh: '<b>階段 9/14 — Batch 157（2026/10/26）：</b> 同步 16 筆海關核准單耗（<code>TrangThai=2</code>），解決 <code>NPL212</code> 出口負差 <code>-441,602.08 MTK</code>。'
+      },
+      {
+        stage: '10/14 • Batch 158 (-$3,980.26)',
+        phase: 3, gates: 9, route: 'analytics->forge',
+        active: ['tax-analyst', 'workbook-builder'], done: ['usage-analyst'],
+        talk: [
+          ['tax-analyst', 'Thuế NPL ➔ Lập Sổ', 'Batch 158 (26/10 23:59): Đồng bộ NPL351/353/158 & sửa WA25050086!', 'Batch 158（10/26 23:59）：同步 NPL351/353/158 並修正 WA25050086 誤植！', 'NPL135➔NPL326', 0],
+          ['workbook-builder', 'Lập Sổ ➔ Chị Lan', 'Giảm trực tiếp -3.980,26 USD chênh lệch thuế trên hợp đồng SF2025!', '直接降低 SF2025 合約稅額差異 -3,980.26 USD！', 'Thuế: -3.980,26 USD', 850]
+        ],
+        vi: '<b>Giai đoạn 10/14 — Batch 158 (26/10/2026 23:59):</b> Đồng bộ định mức <code>NPL351/353/158</code>, sửa lỗi đánh máy <code>WA25050086</code> (<code>NPL135→NPL326</code>), giảm <code>-$3,980.26</code> thuế.',
+        zh: '<b>階段 10/14 — Batch 158（2026/10/26 23:59）：</b> 同步 <code>NPL351/353/158</code> 單耗並修正 <code>WA25050086</code> 誤植，減少稅差 <code>-$3,980.26 USD</code>。'
+      },
+      {
+        stage: '11/14 • Thuế 10% & Pháp Lý',
+        phase: 3, gates: 9, route: 'analytics->forge',
+        active: ['tax-analyst'], done: ['workbook-builder'],
+        talk: [
+          ['tax-analyst', 'Thuế NPL ➔ Chị Lan', 'Mã 2 thuế suất đã giữ trống & gắn cờ Mâu thuẫn thuế suất!', '雙稅率料號已留白並標記「稅率衝突」，絕不推估！', 'ECUS_TaxCaculate 10%', 0],
+          ['orchestrator', 'Chị Lan ➔ Nhóm Pháp Lý', 'Đã tách rõ mốc Luật 90/2025, NĐ 167/2025, TT 121/2025 & Luật 11/2026.', '已依 90/2025 法、167/2025 議定、121/2025 通告及 11/2026 法分流！', 'Legal Period Routing', 850]
+        ],
+        vi: '<b>Giai đoạn 11/14 — Thuế 10% & Pháp lý theo thời kỳ:</b> Giữ trống mã thiếu/xung đột thuế suất, tách mốc hiệu lực Luật <code>90/2025</code>, NĐ <code>167/2025</code>, TT <code>121/2025</code> & Luật <code>11/2026</code>.',
+        zh: '<b>階段 11/14 — 10% 稅差與法規時效：</b> 缺漏或衝突稅率保留空白並標記衝突，區分第 90/2025 號法、167/2025 議定與 121/2025 通告。'
+      },
+      {
+        stage: '12/14 • Chứng Từ Scan 25/10',
+        phase: 4, gates: 10, route: 'forge->qa',
+        active: ['logic-qa', 'visual-qa'], done: ['tax-analyst'],
+        talk: [
+          ['logic-qa', 'Kiểm Định Số ➔ Trình Bày', 'Khớp 2 E52 scan (308849150910, 308849504260) & HĐ vận tải 111 (7.462.800đ)!', '掃描檔兩筆 E52 與運費發票 111（7,462,800 VND）完全吻合！', 'PDF Scan 25102026', 0],
+          ['visual-qa', 'Kiểm Định Trình Bày', 'CN2608104 & DV2608105 cân số, tách 2 phiếu không cộng trùng!', 'CN2608104 與 DV2608105 已核對，絕不重複加總！', '7 trang PDF đạt', 850]
+        ],
+        vi: '<b>Giai đoạn 12/14 — Đối chiếu Chứng từ Scan (25/10/2026):</b> Khớp 2 tờ khai E52 & hóa đơn vận tải 111 (<code>7.462.800 VND</code> trên <code>CN2608104</code> & <code>DV2608105</code>).',
+        zh: '<b>階段 12/14 — 掃描單證與運費核對（2026/10/25）：</b> 比對兩筆 E52 報單及運費發票 111（<code>7,462,800 VND</code>），兩張傳票不重複加總。'
+      },
+      {
+        stage: '13/14 • Sổ 7 Sheet & QA',
+        phase: 4, gates: 10, route: 'forge->qa',
+        active: ['workbook-builder', 'logic-qa', 'visual-qa'], done: [],
+        talk: [
+          ['workbook-builder', 'Lập Sổ ➔ 2 Bàn QA', 'Đã đóng run11 & candidate.xlsx 7 sheet song ngữ Việt–Hoa!', '已完成 run11 與 7 頁越中雙語 candidate.xlsx 封版！', 'run11 + candidate.xlsx', 0],
+          ['logic-qa', '2 Bàn QA ➔ Chị Lan', 'Chênh chuyển năm = 0 trên khóa ghép được; công thức & 7 sheet đạt!', '可配對鍵值跨年差異為 0，公式與 7 頁版面複核通過！', 'QA Độc Lập Đạt', 850]
+        ],
+        vi: '<b>Giai đoạn 13/14 — Đóng sổ 7 Sheet & Kiểm định độc lập:</b> Bản <code>run11</code> đạt <code>0</code> chênh chuyển năm trên khóa ghép được; Logic QA & Visual QA duyệt 7 trang song ngữ.',
+        zh: '<b>階段 13/14 — 7 頁報表封版與獨立 QA：</b> <code>run11</code> 可配對鍵值跨年差異為 0；邏輯與視覺品管複核 7 頁雙語報表通過。'
+      },
+      {
+        stage: '14/14 • 49/49 Tests & Kết Thúc',
+        phase: 5, gates: 11, route: 'qa->command',
+        active: [], done: ['orchestrator', 'logic-qa', 'visual-qa'],
+        talk: [
+          ['logic-qa', '2 Bàn QA ➔ Chị Lan', 'verify_ktstq.py đạt 49/49 tests, 140 mã hash nguyên vẹn!', 'verify_ktstq.py 通過 49/49 項測試、140 筆雜湊值零異動！', '49/49 PASS + 140 Hash', 0],
+          ['orchestrator', 'Chị Lan ➔ Toàn Phòng', 'Hoàn tất 158 Batches! Đã đồng bộ 3 bộ Skill & Văn phòng ảo 3D!', '158 批次圓滿完成！3 套 Skill 與 3D 辦公室已同步簽核！', 'KTSTQ Hoàn Thành (11/11)', 900]
+        ],
+        vi: '<b>Giai đoạn 14/14 — Hoàn tất 158 Batches & Kiểm toán <code>49/49</code> Tests:</b> Chạy <code>verify_ktstq.py</code> đạt 49/49 tests, 140 hash khớp, đồng bộ 3 Skill & Văn phòng ảo. Chị Lan ký duyệt!',
+        zh: '<b>階段 14/14 — 完成 158 批次與 <code>49/49</code> 項驗證：</b> 執行 <code>verify_ktstq.py</code> 通過 49/49 測試、140 筆雜湊一致，蘭姐簽核備查！'
       }
     ];
 
@@ -1554,27 +1638,10 @@
       updateGates(step.gates);
 
       // Hội thoại 3D chi tiết giữa các subagent theo từng giai đoạn
-      if (idx === 0) {
-        showSpeech('orchestrator', 'Chị Lan ➔ Kho SQL', 'Chốt kỳ 01/07/2023–30/09/2026. Lấy snapshot Read-Only nhé!', '鎖定 2023/07/01–2026/09/30，請唯讀匯出快照！', 'Yêu cầu phạm vi 3 năm', 0, 3400);
-        showSpeech('data-extractor', 'Kho SQL ➔ Chị Lan', 'Đã khóa 11.962 tờ khai & 255.346 dòng nhập. Không chạm ECUS!', '已封存 11,962 報單與 255,346 入庫，絕不改 ECUS！', 'snapshot-manifest.json', 850, 3400);
-      } else if (idx === 1) {
-        showSpeech('import-analyst', 'Nhập Khẩu ➔ Định Mức', 'Phát hiện 7 nhóm đa ĐVT & 273 phiếu đổi mã (818 dòng)!', '發現 7 組多單位報單與 273 筆換碼（818 筆流水）！', '818 dòng đổi mã', 0, 3400);
-        showSpeech('usage-analyst', 'Định Mức ➔ Chị Lan', 'Đã tách khổ từng dòng, giữ nguyên dòng thiếu cơ sở quy đổi.', '已逐筆拆幅寬，缺依據者保留不推估。', 'Bảng ĐVT sạch', 850, 3400);
-      } else if (idx === 2) {
-        showSpeech('export-analyst', 'Xuất Khẩu ➔ Định Mức', 'Đơn SF2604036-A có 6 E52 (6.338 PCE), tách xong 75 dòng OUT!', '訂單 SF2604036-A（6 筆 E52、6,338 PCE）與 75 筆 OUT 已拆解！', '6.338 PCE + 75 OUT', 0, 3400);
-        showSpeech('usage-analyst', 'Định Mức ➔ Lập Sổ', 'Đã kiểm 6 file XLS (3.775 dòng), bỏ lấy định mức dòng đầu!', '已核 6 份 XLS（3,775 筆），禁用首筆預設單耗！', '3.775 dòng định mức', 850, 3400);
-      } else if (idx === 3) {
-        showSpeech('export-analyst', 'Đối Chiếu ➔ Lập Sổ', 'Cầu nối 2023–2026 xong: 143 khóa năm, 83 khóa tháng 6!', '2023–2026 橋接完成：143 年度鍵值、83 六月鍵值！', '143 khóa năm (run11)', 0, 3400);
-        showSpeech('workbook-builder', 'Lập Sổ Excel', 'Đã tách riêng BCQT gốc & tính lại. Chênh chuyển năm = 0!', '已區分原申報與重算 BCQT，跨年差異為 0！', 'BCQT Tách Bạch', 850, 3400);
-      } else if (idx === 4) {
-        showSpeech('tax-analyst', 'Thuế NPL ➔ Lập Sổ', 'Tính lại 10% VAT. Mã 2 thuế suất đã gắn cờ Mâu thuẫn thuế suất!', '重算 10% 稅差完成，雙稅率已標記「稅率衝突」！', 'ECUS_TaxCaculate', 0, 3400);
-        showSpeech('workbook-builder', 'Lập Sổ ➔ Chị Lan', 'Đã phân tuyến Luật 90/2025, NĐ 167/2025 & TT 121/2025 vào báo cáo.', '已依 90/2025 法、167/2025 議定與 121/2025 通告分流！', '7 Sheet Việt-Hoa', 850, 3400);
-      } else if (idx === 5) {
-        showSpeech('logic-qa', 'Kiểm Định Số ➔ Trình Bày', 'Khớp 2 E52 scan (308849150910, 308849504260) & HĐ 111 (7.462.800đ)!', '掃描檔兩筆 E52 與運費發票 111（7,462,800 VND）完全吻合！', 'PDF Scan 25102026', 0, 3400);
-        showSpeech('visual-qa', 'Kiểm Định Trình Bày', 'CN2608104 & DV2608105 cân số, giữ tách 2 phiếu không cộng trùng!', 'CN2608104 與 DV2608105 已核對，絕不重複加總！', '7 trang PDF đạt', 850, 3400);
-      } else if (idx === 6) {
-        showSpeech('logic-qa', '2 Bàn QA ➔ Chị Lan', 'verify_ktstq.py đạt 49/49 tests, 140 mã hash nguyên vẹn!', 'verify_ktstq.py 通過 49/49 測試、140 筆雜湊零異動！', '49/49 PASS + 140 Hash', 0, 4200);
-        showSpeech('orchestrator', 'Chị Lan ➔ Toàn Phòng', 'Xuất sắc! Đã đồng bộ 3 bộ Skill & Văn phòng ảo. Ký duyệt hồ sơ!', '太棒了！3 套 Skill 與 3D 辦公室已同步，正式簽核結案！', 'Hồ Sơ KTSTQ Đạt Chuẩn', 900, 4200);
+      if (step.talk) {
+        step.talk.forEach(([agentId, tag, vi, zh, payload, delay]) => {
+          showSpeech(agentId, tag, vi, zh, payload, delay, 3200);
+        });
       }
 
       let text = '';
