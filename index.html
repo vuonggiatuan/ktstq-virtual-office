@@ -137,9 +137,9 @@
 
     /* Top HUD */
     .hud-top {
-      position: fixed; top: 14px; left: 14px; right: 14px;
-      z-index: 20;
-      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      position: fixed; top: 10px; left: 10px; right: 10px;
+      z-index: 25;
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
       pointer-events: none;
     }
     .hud-card {
@@ -147,28 +147,29 @@
       background: var(--panel-bg);
       border: 1px solid var(--panel-border);
       backdrop-filter: blur(14px);
-      border-radius: 14px;
-      padding: 10px 14px;
+      border-radius: 12px;
+      padding: 7px 10px;
       box-shadow: 0 12px 32px rgba(15, 23, 42, 0.35);
     }
-    .brand { display: flex; align-items: center; gap: 11px; }
+    .brand { display: flex; align-items: center; gap: 9px; }
     .brand-icon {
-      width: 38px; height: 38px; border-radius: 10px;
+      width: 32px; height: 32px; border-radius: 9px;
       background: linear-gradient(135deg, #2563eb, #06b6d4);
       display: grid; place-items: center;
-      font-weight: 800; font-size: 13px; color: white;
+      font-weight: 800; font-size: 11px; color: white;
       box-shadow: 0 4px 14px rgba(37, 99, 235, 0.45);
     }
-    .brand h1 { font-size: 14px; font-weight: 700; }
-    .brand p { font-size: 11px; color: #cbd5e1; margin-top: 2px; }
+    .brand h1 { font-size: 12.5px; font-weight: 700; white-space: nowrap; }
+    .brand p { font-size: 10px; color: #cbd5e1; margin-top: 1px; white-space: nowrap; }
 
-    .pipeline-bar { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .pipeline-bar { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
     .phase-chip {
-      font-size: 11px; font-weight: 600;
-      padding: 5px 9px; border-radius: 8px;
+      font-size: 10px; font-weight: 600;
+      padding: 4px 7px; border-radius: 7px;
       background: rgba(30, 41, 59, 0.85);
       border: 1px solid rgba(148, 163, 184, 0.22);
       color: var(--text-muted);
+      white-space: nowrap;
       transition: all 0.25s;
     }
     .phase-chip.active {
@@ -183,18 +184,18 @@
       color: #6ee7b7;
     }
 
-    .hud-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .hud-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
     .btn {
       border: 1px solid rgba(148, 163, 184, 0.28);
       background: rgba(30, 41, 59, 0.92);
       color: var(--text-main);
-      padding: 7px 10px;
-      border-radius: 9px;
-      font-size: 11.5px;
+      padding: 5px 7px;
+      border-radius: 8px;
+      font-size: 10.5px;
       font-weight: 600;
       white-space: nowrap;
       cursor: pointer;
-      display: inline-flex; align-items: center; gap: 5px;
+      display: inline-flex; align-items: center; gap: 4px;
       transition: all 0.18s;
     }
     .btn:hover { background: rgba(51, 65, 85, 0.95); transform: translateY(-1px); }
@@ -369,8 +370,8 @@
     <div class="hud-card brand">
       <div class="brand-icon">XNK</div>
       <div>
-        <h1>Văn Phòng Ảo Xuất Nhập Khẩu — New Wide</h1>
-        <p>Chủ quản: Chị Lan • Phối hợp 10 vị trí làm Báo Cáo & Hệ Thống DCS_XNT Hải Quan</p>
+        <h1>Văn Phòng Ảo XNK — New Wide</h1>
+        <p>Chủ quản: Chị Lan • 10 Vị Trí Hải Quan & DCS_XNT</p>
       </div>
     </div>
 
@@ -2185,7 +2186,7 @@
         c.isMoving = dist > 0.08;
 
         if (c.isMoving) {
-          const step = Math.min(dist, (c.working ? 3.2 : 1.35) * dt);
+          const step = Math.min(dist, (c.working || !freeRoamEnabled ? 4.8 : 1.35) * dt);
           c.group.position.x += (dx / dist) * step;
           c.group.position.z += (dz / dist) * step;
           c.group.position.y += (c.targetPos.y - c.group.position.y) * Math.min(1, dt * 6);
